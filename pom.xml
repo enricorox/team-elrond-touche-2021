@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>it.unipd.dei.se</groupId>
+
+    <artifactId>elrond-task1</artifactId>
+
+    <version>1.00</version>
+
+    <packaging>jar</packaging>
+
+    <!-- Project description elements -->
+    <name>Task1 - Elrond!</name>
+
+    <description>Touché Task 1: Argument Retrieval for Controversial Questions</description>
+
+    <url>https://bitbucket.org/upd-dei-stud-prj/seupd2021-rs</url>
+
+    <inceptionYear>2021</inceptionYear>
+
+<!--    <developers>-->
+        <!--    todo    -->
+<!--    </developers>-->
+
+
+    <!-- Build settings -->
+
+    <!-- Specifies the encoding to be used for project source files
+        and other properties
+    -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lucene.version>8.8.1</lucene.version>
+        <java.version>16</java.version>
+    </properties>
+
+    <!-- Configuration of the default build lifecycle -->
+    <build>
+        <defaultGoal>compile</defaultGoal>
+
+        <!-- source code folder -->
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+
+        <!-- compiled code folder -->
+        <directory>${basedir}/target</directory>
+
+        <!-- name of the generated package -->
+        <finalName>${project.artifactId}-${project.version}</finalName>
+
+        <!-- configuration of the plugins for the different goals -->
+        <plugins>
+
+            <!-- compiler plugin: set the source and target code -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+
+            <!-- javadoc plugin: output in the javadoc folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <reportOutputDirectory>${basedir}/javadoc</reportOutputDirectory>
+                    <author>true</author>
+                    <nosince>false</nosince>
+                    <show>protected</show>
+                    <source>${java.version}</source>
+                    <doctitle>${project.name} ${project.version} - Search Engines Code Examples</doctitle>
+                    <windowtitle>${project.artifactId} ${project.version}</windowtitle>
+                    <bottom>Copyright &#169; ${project.inceptionYear}&#x2013;{currentYear}
+                        <![CDATA[<a href="https://www.unipd.it/en/" target="_blank">University of Padua</a>, Italy. All rights reserved.]]>
+                        <![CDATA[<i>Search Engines</i> is a course of the <a href="https://lauree.dei.unipd.it/lauree-magistrali/computer-engineering/" target="_blank">Master Degree in Computer Engineering</a> of the  <a href="https://www.dei.unipd.it/en/" target="_blank">Department of Information Engineering</a>.]]>
+                        <![CDATA[<i>Search Engines</i> is part of the teaching activities of the <a href="http://iiia.dei.unipd.it/" target="_blank">Intelligent Interactive Information Access (IIIA) Hub</a>.]]>
+                    </bottom>
+                    <validateLinks>true</validateLinks>
+                    <links>
+                        <link>https://docs.oracle.com/en/java/javase/${java.version}/docs/api/</link>
+                        <link>https://javadoc.io/doc/org.apache.lucene/lucene-core/${lucene.version}/</link>
+                        <link>https://javadoc.io/doc/org.apache.lucene/lucene-queryparser/${lucene.version}/</link>
+                    </links>
+                </configuration>
+            </plugin>
+
+            <!-- generates jar files including any dependencies -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal> <!-- the only goal of the assembly plugin -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <!-- Dependencies -->
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-benchmark</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.4</version>
+        </dependency>
+    </dependencies>
+</project>
