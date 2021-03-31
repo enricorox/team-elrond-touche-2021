@@ -60,49 +60,47 @@ public class Task1Parser extends DocumentParser {
             //now we are at the start of the documents array
             //and the current token is '{'
 
-            while (true) { // to give the ability to skip a document if the id is missing
-                final JsonNode root = objectMapper.readTree(jsonParser);
-                if (root == null) throw new IllegalArgumentException("Not valid json");
+            final JsonNode root = objectMapper.readTree(jsonParser);
+            if (root == null) throw new IllegalArgumentException("Not valid json");
 
-                final String id;
-                if (root.hasNonNull("id")) id = root.get("id").asText();
-                else continue;
+            final String id;
+            if (root.hasNonNull("id")) id = root.get("id").asText();
+            else throw new IllegalArgumentException("No valid id");
 
-                final var body = new StringBuilder(BODY_SIZE);
+            final var body = new StringBuilder(BODY_SIZE);
 
-                if (root.hasNonNull("context")) {
-                    final var context = root.get("context");
+            if (root.hasNonNull("context")) {
+                final var context = root.get("context");
 
-                    //domain
-                    if (context.hasNonNull("sourceDomain")) {
-                        body.append(context.get("sourceDomain").asText());
-                        body.append(" ");
-                    }
-
-                    // title
-                    if (context.hasNonNull("discussionTitle")) {
-                        body.append(context.get("discussionTitle").asText());
-                        body.append(" ");
-                    }
+                //domain
+                if (context.hasNonNull("sourceDomain")) {
+                    body.append(context.get("sourceDomain").asText());
+                    body.append(" ");
                 }
 
-                // text content
-                if (root.hasNonNull("premises") ){
-                    root.get("premises").elements().forEachRemaining(childNode -> {
-                        if (childNode.hasNonNull("text")) {
-                            body.append(childNode.get("text").asText());
-                            body.append(" ");
-                        }
-                    });
+                // title
+                if (context.hasNonNull("discussionTitle")) {
+                    body.append(context.get("discussionTitle").asText());
+                    body.append(" ");
                 }
-
-                document = new ParsedDocument(
-                        id,
-                        body.toString()
-                );
-
-                return true;
             }
+
+            // text content
+            if (root.hasNonNull("premises") ){
+                root.get("premises").elements().forEachRemaining(childNode -> {
+                    if (childNode.hasNonNull("text")) {
+                        body.append(childNode.get("text").asText());
+                        body.append(" ");
+                    }
+                });
+            }
+
+            document = new ParsedDocument(
+                    id,
+                    body.toString()
+            );
+
+            return true;
         } catch (IOException e) {
             throw new IllegalArgumentException("Read failed", e);
         }
