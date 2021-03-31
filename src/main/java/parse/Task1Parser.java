@@ -46,6 +46,8 @@ public class Task1Parser extends DocumentParser {
                 jsonParser.nextToken();
             } else if (jsonParser.nextToken() == JsonToken.END_ARRAY) {
                 // end of the documents for this file
+                jsonParser.close();
+                in.close();
                 return false;
             }
 
