@@ -64,34 +64,6 @@
                 </configuration>
             </plugin>
 
-
-            <!-- javadoc plugin: output in the javadoc folder -->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
-<!--                <version>3.2.0</version>-->
-<!--                <configuration>-->
-<!--                    <reportOutputDirectory>${basedir}/javadoc</reportOutputDirectory>-->
-<!--                    <author>true</author>-->
-<!--                    <nosince>false</nosince>-->
-<!--                    <show>protected</show>-->
-<!--                    <source>${java.version}</source>-->
-<!--                    <doctitle>${project.name} ${project.version} - Search Engines Code Examples</doctitle>-->
-<!--                    <windowtitle>${project.artifactId} ${project.version}</windowtitle>-->
-<!--                    <bottom>Copyright &#169; ${project.inceptionYear}&#x2013;{currentYear}-->
-<!--                        <![CDATA[<a href="https://www.unipd.it/en/" target="_blank">University of Padua</a>, Italy. All rights reserved.]]>-->
-<!--                        <![CDATA[<i>Search Engines</i> is a course of the <a href="https://lauree.dei.unipd.it/lauree-magistrali/computer-engineering/" target="_blank">Master Degree in Computer Engineering</a> of the  <a href="https://www.dei.unipd.it/en/" target="_blank">Department of Information Engineering</a>.]]>-->
-<!--                        <![CDATA[<i>Search Engines</i> is part of the teaching activities of the <a href="http://iiia.dei.unipd.it/" target="_blank">Intelligent Interactive Information Access (IIIA) Hub</a>.]]>-->
-<!--                    </bottom>-->
-<!--                    <validateLinks>true</validateLinks>-->
-<!--                    <links>-->
-<!--                        <link>https://docs.oracle.com/en/java/javase/${java.version}/docs/api/</link>-->
-<!--                        <link>https://javadoc.io/doc/org.apache.lucene/lucene-core/${lucene.version}/</link>-->
-<!--                        <link>https://javadoc.io/doc/org.apache.lucene/lucene-queryparser/${lucene.version}/</link>-->
-<!--                    </links>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
             <!-- generates jar files including any dependencies -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
