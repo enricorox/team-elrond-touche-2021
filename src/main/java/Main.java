@@ -16,6 +16,7 @@ public class Main {
 
         final int ramBuffer = 256;
         final String docsPath = "/home/gianmarco/Documenti/Projects/RI-data/task1";
+
         new File("experiment").mkdir();
         final String indexPath = "experiment/index-task1";
 
@@ -26,7 +27,7 @@ public class Main {
         final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 
-        final Similarity sim = new BM25Similarity();
+        final Similarity similarity = new BM25Similarity();
 
 //        final String topics = "../collections/TREC_27_2018_Core/topics.txt"; //todo ???
 
@@ -39,7 +40,7 @@ public class Main {
 //        final int expectedTopics = 50;
 
         // indexing
-        final DirectoryIndexer i = new DirectoryIndexer(a, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
+        final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
         i.index();
 
