@@ -277,6 +277,9 @@ public class DirectoryIndexer {
                         // add the document body
                         doc.add(new BodyField(pd.getBody()));
 
+                        //add domain
+                        doc.add(new StringField(ParsedDocument.FIELDS.DOMAIN, pd.getDomain(), Field.Store.YES));
+
                         writer.addDocument(doc);
 
                         docsCount++;

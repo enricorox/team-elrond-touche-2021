@@ -47,6 +47,8 @@ public class ParsedDocument {
          * The document identifier
          */
         public static final String BODY = "body";
+
+        public static final String DOMAIN = "domain";
     }
 
 
@@ -60,6 +62,8 @@ public class ParsedDocument {
      */
     private final String body;
 
+    private final String domain;
+
     /**
      * Creates a new parsed document
      *
@@ -68,7 +72,7 @@ public class ParsedDocument {
      * @throws NullPointerException  if {@code id} and/or {@code body} are {@code null}.
      * @throws IllegalStateException if {@code id} and/or {@code body} are empty.
      */
-    public ParsedDocument(final String id, final String body) {
+    public ParsedDocument(final String id, final String body, final String domain) {
 
         if (id == null) {
             throw new NullPointerException("Document identifier cannot be null.");
@@ -89,6 +93,16 @@ public class ParsedDocument {
         }
 
         this.body = body;
+
+        if (domain == null) {
+            throw new NullPointerException("Document domain cannot be null.");
+        }
+
+        if (domain.isEmpty()) {
+            throw new IllegalStateException("Document domain cannot be empty.");
+        }
+
+        this.domain = domain;
     }
 
     /**
@@ -109,6 +123,9 @@ public class ParsedDocument {
         return body;
     }
 
+    public String getDomain() {
+        return domain;
+    }
 
     @Override
     public final String toString() {
