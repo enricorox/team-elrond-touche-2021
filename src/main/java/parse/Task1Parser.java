@@ -67,6 +67,8 @@ public class Task1Parser extends DocumentParser {
             if (root.hasNonNull("id")) id = root.get("id").asText();
             else throw new IllegalArgumentException("No valid id");
 
+            String domain = "";
+
             final var body = new StringBuilder(BODY_SIZE);
 
             if (root.hasNonNull("context")) {
@@ -74,8 +76,7 @@ public class Task1Parser extends DocumentParser {
 
                 //domain
                 if (context.hasNonNull("sourceDomain")) {
-                    body.append(context.get("sourceDomain").asText());
-                    body.append(" ");
+                    domain = context.get("sourceDomain").asText();
                 }
 
                 // title
@@ -97,7 +98,8 @@ public class Task1Parser extends DocumentParser {
 
             document = new ParsedDocument(
                     id,
-                    body.toString()
+                    body.toString(),
+                    domain
             );
 
             return true;

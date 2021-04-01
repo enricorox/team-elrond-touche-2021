@@ -41,9 +41,9 @@ public class BodyField extends Field {
     private static final FieldType BODY_TYPE = new FieldType();
 
     static {
-        BODY_TYPE.setIndexOptions(IndexOptions.DOCS_AND_FREQS);
+        BODY_TYPE.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
         BODY_TYPE.setTokenized(true);
-        BODY_TYPE.setStored(false);
+        BODY_TYPE.setStored(true);
     }
 
 
