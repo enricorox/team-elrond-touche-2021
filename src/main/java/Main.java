@@ -16,6 +16,9 @@ import java.util.Properties;
 public class Main {
     private static Properties loadProps() throws IOException {
         final var in = Main.class.getResourceAsStream("data.properties");
+        if (in == null) {
+            throw new IllegalArgumentException("Copy example.properties as data.properties and edit it");
+        }
         final var prop = new Properties();
         prop.load(in);
         return prop;
@@ -50,7 +53,7 @@ public class Main {
         // indexing
         final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
-        i.index();
+//        i.index();
 
         final var topics = Topics.loadTopics(props.getProperty("topics_path"));
 
