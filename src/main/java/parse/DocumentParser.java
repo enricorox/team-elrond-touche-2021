@@ -34,7 +34,7 @@ public abstract class DocumentParser
     /**
      * Indicates whether there is another {@code ParsedDocument} to return.
      */
-    protected boolean next = true;
+     protected boolean next = true;
 
     /**
      * The reader to be used to parse document(s).
