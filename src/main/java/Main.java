@@ -16,6 +16,7 @@ public class Main {
 
         final int ramBuffer = 256;
         final String docsPath = "/home/gianmarco/Documenti/Projects/RI-data/task1";
+
         new File("experiment").mkdir();
         final String indexPath = "experiment/index-task1";
 
