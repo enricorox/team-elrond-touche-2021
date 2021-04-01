@@ -7,6 +7,7 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.Task1Parser;
+import topics.Topics;
 
 import java.io.File;
 
@@ -43,6 +44,9 @@ public class Main {
         final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
         i.index();
+
+        final var topics = Topics.loadTopics("/home/gianmarco/Documenti/Projects/RI-data/topics-task-1-only-titles.xml");
+        System.out.println(topics);
 
         // searching
 //        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
