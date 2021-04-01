@@ -53,7 +53,7 @@ public class Main {
         // indexing
         final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
-//        i.index();
+        i.index();
 
         final var topics = Topics.loadTopics(props.getProperty("topics_path"));
 
