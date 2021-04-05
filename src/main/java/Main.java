@@ -33,7 +33,6 @@ public class Main {
         final int ramBuffer = 256;
 
         new File(props.getProperty("work_folder")).mkdir();
-        final String indexPath = "%s/%s".formatted(props.getProperty("work_folder"), props.getProperty("index_folder"));
         final var docsPath = props.getProperty("docs_path");
 
         final String extension = props.getProperty("extension");
@@ -51,28 +50,46 @@ public class Main {
 
         final int expectedTopics = Integer.parseInt(props.getProperty("expectedTopics"));
 
-        final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
-                expectedDocs, Task1Parser.class);
-        i.index();
-
         final var topics = props.getProperty("topics_path");
 
-        Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
-            final BasicSearcher searcher = switch (method) {
-                case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, method, runPath, maxDocsRetrieved);
-                default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
+        Arrays.stream(props.getProperty("parseList").split(" ")).forEach(parserName -> {
+            final String indexPath = "%s/index-%s".formatted(props.getProperty("work_folder"), parserName);
+            final Class<? extends DocumentParser> parser = switch (parserName) {
+                case "task1parser" -> Task1Parser.class;
+                default -> throw new IllegalArgumentException("Unknown parser %s".formatted(parserName));
             };
-            System.out.println("\n############################################");
-            System.out.printf("Searching with '%s'...\n", method);
+            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.printf("Start indexing with '%s'...\n", parserName);
+            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+                    expectedDocs, parser);
             try {
-                searcher.search();
-                System.out.println("  Search succeeded");
-            } catch (Exception e) {
-                System.out.println("  Search failed");
+                i.index();
+                System.out.println("Indexing succeeded");
+            } catch (IOException e) {
+                System.out.println("Indexing failed");
                 e.printStackTrace();
+                return;
             }
-            System.out.println("############################################");
-        });
 
+            Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
+                final var runID = "%s-%s".formatted(parserName, method);
+                final BasicSearcher searcher = switch (method) {
+                    case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
+                };
+                System.out.println("\n############################################");
+                System.out.printf("Searching with '%s'...\n", method);
+                try {
+                    searcher.search();
+                    System.out.println("  Search succeeded");
+                } catch (Exception e) {
+                    System.out.println("  Search failed");
+                    e.printStackTrace();
+                }
+                System.out.println("############################################");
+            });
+
+            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+        });
     }
 }
