@@ -6,11 +6,14 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
+import parse.DocumentParser;
 import parse.Task1Parser;
-import search.Task1Searcher;
+import search.BasicSearcher;
+import search.TaskSearcher1;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Main {
@@ -44,23 +47,32 @@ public class Main {
 
         final String runPath = props.getProperty("work_folder");
 
-        final String runID = props.getProperty("runID");
-
         final int maxDocsRetrieved = Integer.parseInt(props.getProperty("maxDocsRetrieved"));
 
         final int expectedTopics = Integer.parseInt(props.getProperty("expectedTopics"));
 
-
-        // indexing
         final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
         i.index();
 
         final var topics = props.getProperty("topics_path");
 
-        // searching
-        final var s = new Task1Searcher(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-        s.search();
+        Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
+            final BasicSearcher searcher = switch (method) {
+                case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, method, runPath, maxDocsRetrieved);
+                default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
+            };
+            System.out.println("\n############################################");
+            System.out.printf("Searching with '%s'...\n", method);
+            try {
+                searcher.search();
+                System.out.println("  Search succeeded");
+            } catch (Exception e) {
+                System.out.println("  Search failed");
+                e.printStackTrace();
+            }
+            System.out.println("############################################");
+        });
 
     }
 }
