@@ -130,7 +130,7 @@ public class ParsedDocument {
     @Override
     public final String toString() {
         ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE).append("identifier", id).append(
-                "body", body);
+                "body", body).append("domain", domain);
 
         return tsb.toString();
     }
