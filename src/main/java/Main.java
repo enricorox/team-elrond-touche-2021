@@ -7,7 +7,7 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.Task1Parser;
-import topics.Topics;
+import search.Task1Searcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,24 +42,25 @@ public class Main {
 
         final Similarity similarity = new BM25Similarity();
 
-//        final String runPath = "experiment";
+        final String runPath = props.getProperty("work_folder");
 
-//        final String runID = "task1";
+        final String runID = props.getProperty("runID");
 
-//        final int maxDocsRetrieved = 1000;
+        final int maxDocsRetrieved = Integer.parseInt(props.getProperty("maxDocsRetrieved"));
 
-//        final int expectedTopics = 50;
+        final int expectedTopics = Integer.parseInt(props.getProperty("expectedTopics"));
+
 
         // indexing
         final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
         i.index();
 
-        final var topics = Topics.loadTopics(props.getProperty("topics_path"));
+        final var topics = props.getProperty("topics_path");
 
         // searching
-//        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-//        s.search();
+        final var s = new Task1Searcher(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+        s.search();
 
     }
 }
