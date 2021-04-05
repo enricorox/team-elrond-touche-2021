@@ -274,6 +274,9 @@ public class DirectoryIndexer {
                         // add the document identifier
                         doc.add(new StringField(ParsedDocument.FIELDS.ID, pd.getIdentifier(), Field.Store.YES));
 
+                        //add title
+                        doc.add(new TitleField(pd.getTitle()));
+
                         // add the document body
                         doc.add(new BodyField(pd.getBody()));
 
