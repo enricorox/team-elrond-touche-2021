@@ -3,10 +3,13 @@ package topics;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.apache.lucene.benchmark.quality.QualityQuery;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Topics {
@@ -34,5 +37,15 @@ public class Topics {
         final var in = new FileInputStream(file);
         final var mapper = new XmlMapper();
         return mapper.readValue(in, Topics.class);
+    }
+
+    public QualityQuery[] getQualityQueries(){
+        ArrayList<QualityQuery> qualityQueries= new ArrayList<>();
+        topics.forEach((topic)->{
+            var fields = new HashMap<String, String>();
+            fields.put("title", topic.title);
+            qualityQueries.add(new QualityQuery(String.valueOf(topic.number), fields));
+        });
+        return qualityQueries.toArray(new QualityQuery[0]);
     }
 }

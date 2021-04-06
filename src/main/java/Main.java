@@ -7,10 +7,12 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.Task1Parser;
+import search.Searcher;
 import topics.Topics;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.Properties;
 
 public class Main {
@@ -41,26 +43,29 @@ public class Main {
         final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 
-        final Similarity similarity = new BM25Similarity();
+        final Similarity sim = new BM25Similarity();
 
-//        final String runPath = "experiment";
+        final String runPath = "experiment";
 
-//        final String runID = "task1";
+        final String runID = "task1";
 
-//        final int maxDocsRetrieved = 1000;
+        final int maxDocsRetrieved = 1000;
 
-//        final int expectedTopics = 50;
+        final int expectedTopics = 50;
 
         // indexing
-        final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+        final DirectoryIndexer i = new DirectoryIndexer(a, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
-        i.index();
+        //i.index();
 
         final var topics = Topics.loadTopics(props.getProperty("topics_path"));
+        System.out.println(topics);
+
+        //String topics = props.getProperty("topics_path");
 
         // searching
-//        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-//        s.search();
+        //final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+        //s.search();
 
     }
 }
