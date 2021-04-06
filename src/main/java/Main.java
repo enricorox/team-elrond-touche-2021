@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Main {
+    // load vars from file
     private static Properties loadProps() throws IOException {
         final var in = Main.class.getResourceAsStream("data.properties");
         if (in == null) {
