@@ -56,16 +56,13 @@ public class Main {
         // indexing
         final DirectoryIndexer i = new DirectoryIndexer(a, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
-        //i.index();
+        i.index();
 
-        final var topics = Topics.loadTopics(props.getProperty("topics_path"));
-        System.out.println(topics);
-
-        //String topics = props.getProperty("topics_path");
+        final String topics = props.getProperty("topics_path");
 
         // searching
-        //final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-        //s.search();
+        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+        s.search();
 
     }
 }

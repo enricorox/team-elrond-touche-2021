@@ -33,6 +33,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
+import topics.Topics;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -188,7 +189,7 @@ public class Searcher {
         try {
             BufferedReader in = Files.newBufferedReader(Paths.get(topicsFile), StandardCharsets.UTF_8);
 
-            topics = new TrecTopicsReader().readQueries(in);
+            topics = Topics.loadTopics(topicsFile).getQualityQueries();
 
             in.close();
         } catch (IOException e) {
@@ -295,8 +296,8 @@ public class Searcher {
                 bq = new BooleanQuery.Builder();
 
                 bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.SHOULD);
-                bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.DESCRIPTION))),
-                       BooleanClause.Occur.SHOULD);
+                //bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.DESCRIPTION))),
+                  //     BooleanClause.Occur.SHOULD);
 
                 q = bq.build();
 
@@ -322,7 +323,7 @@ public class Searcher {
 
         elapsedTime = System.currentTimeMillis() - start;
 
-        System.out.printf("%d topic(s) searched in %d seconds.", topics.length, elapsedTime / 1000);
+        System.out.printf("%d topic(s) searched in %d seconds.%n", topics.length, elapsedTime / 1000);
 
         System.out.printf("#### Searching complete ####%n");
     }
