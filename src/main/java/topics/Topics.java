@@ -1,5 +1,6 @@
 package topics;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -15,6 +16,7 @@ import java.util.List;
 public class Topics {
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "topic")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public List<Topic> topics;
 
     @Override

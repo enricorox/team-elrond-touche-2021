@@ -98,8 +98,7 @@ public class Task1Parser extends DocumentParser {
 
             document = new ParsedDocument(
                     id,
-                    body.toString(),
-                    domain
+                    body.toString()
             );
 
             return true;
