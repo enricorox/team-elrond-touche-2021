@@ -17,17 +17,11 @@
 package index;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.StopFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.PorterStemFilterFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.DocumentParser;
@@ -37,8 +31,9 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Indexes documents processing a whole directory tree.
@@ -104,7 +99,7 @@ public class DirectoryIndexer {
      */
     private long bytesCount;
 
-    private Set<String> idSet = new HashSet<>();
+    private Map<String, Integer> idMap = new HashMap<>();
 
     /**
      * Creates a new indexer.
@@ -272,11 +267,8 @@ public class DirectoryIndexer {
                     Document doc = null;
 
                     for (ParsedDocument pd : dp) {
-
-                        if (idSet.contains(pd.getIdentifier())) {
-                            System.err.printf("Skipped duplicate document %s%n", pd.getIdentifier());
-                            continue;
-                        } else idSet.add(pd.getIdentifier());
+                        int count = idMap.getOrDefault(pd.getIdentifier(), 0);
+                        idMap.put(pd.getIdentifier(), count + 1);
 
                         doc = new Document();
 
@@ -324,10 +316,14 @@ public class DirectoryIndexer {
         System.out.printf("#### Indexing complete ####%n");
     }
 
-    /**
-     * Main method of the class. Just for testing purposes.
-     *
-     * @param args command line arguments.
-     * @throws Exception if something goes wrong while indexing.
-     */
+   public void printDuplicates(){
+        if(idMap.isEmpty())
+            throw new IllegalStateException("You must index before printing duplicates!");
+
+        System.out.printf("Duplicates:%n");
+        idMap.forEach((key, value) -> {
+            if(value > 1)
+                System.out.printf("Document with ID %s appears %d times%n", key, value);
+        });
+   }
 }

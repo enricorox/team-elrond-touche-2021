@@ -41,9 +41,9 @@ public class Main {
         final int expectedDocs = Integer.parseInt(props.getProperty("expectedDocs"));
         final String charsetName = props.getProperty("charsetName");
 
-    /*    final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
-                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
-*/
+//        final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
+//                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
+
        final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
@@ -75,6 +75,7 @@ public class Main {
             try {
                 i.index();
                 System.out.println("Indexing succeeded");
+                i.printDuplicates();
             } catch (IOException e) {
                 System.out.println("Indexing failed");
                 e.printStackTrace();
