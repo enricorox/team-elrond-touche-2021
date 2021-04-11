@@ -57,6 +57,8 @@ public class Main {
         final Analyzer a1 = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class).
                         addTokenFilter(LowerCaseFilterFactory.class).
+                        addTokenFilter(StopFilterFactory.class,
+                                "ignoreCase", "false", "words", "stop.txt", "format", "wordset").
                         addTokenFilter(PorterStemFilterFactory.class).build();
 
         // indexing
