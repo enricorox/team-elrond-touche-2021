@@ -47,8 +47,8 @@ public class Main {
        final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
-//               .addTokenFilter(StopFilterFactory.class,
-//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+               .addTokenFilter(StopFilterFactory.class,
+                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
                .addTokenFilter(PorterStemFilterFactory.class)
                .build();
 
