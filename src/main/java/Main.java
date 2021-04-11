@@ -54,10 +54,13 @@ public class Main {
         final int maxDocsRetrieved = 1000;
 
         final int expectedTopics = 50;
-
+        final Analyzer a1 = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
+                .withTokenizer(StandardTokenizerFactory.class).
+                        addTokenFilter(LowerCaseFilterFactory.class).
+                        addTokenFilter(PorterStemFilterFactory.class).build();
 
         // indexing
-        final DirectoryIndexer i = new DirectoryIndexer(a, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
+        final DirectoryIndexer i = new DirectoryIndexer(a1, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
                 expectedDocs, Task1Parser.class);
         i.index();
 
@@ -65,7 +68,7 @@ public class Main {
 
 
         // searching
-        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+        final Searcher s = new Searcher(a1, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
         s.search();
 
     }
