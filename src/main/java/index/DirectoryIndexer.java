@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Indexes documents processing a whole directory tree.
@@ -101,6 +103,8 @@ public class DirectoryIndexer {
      * The total number of indexed bytes
      */
     private long bytesCount;
+
+    private Set<String> idSet = new HashSet<>();
 
     /**
      * Creates a new indexer.
@@ -269,6 +273,12 @@ public class DirectoryIndexer {
 
                     for (ParsedDocument pd : dp) {
 
+                        if (idSet.contains(pd.getIdentifier())) {
+                            System.err.printf("Skipped duplicate document %s%n", pd.getIdentifier());
+                            continue;
+                        } else idSet.add(pd.getIdentifier());
+                        writer.addDocument(doc);
+
                         doc = new Document();
 
                         // add the document identifier
@@ -282,8 +292,6 @@ public class DirectoryIndexer {
 
                         //add domain
                         doc.add(new StringField(ParsedDocument.FIELDS.DOMAIN, pd.getDomain(), Field.Store.YES));
-
-                        writer.addDocument(doc);
 
                         docsCount++;
 
