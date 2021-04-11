@@ -1,5 +1,6 @@
 package topics;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -36,6 +37,7 @@ public class Topics {
         final var file = new File(path);
         final var in = new FileInputStream(file);
         final var mapper = new XmlMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return mapper.readValue(in, Topics.class);
     }
 

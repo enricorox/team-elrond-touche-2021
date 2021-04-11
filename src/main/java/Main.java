@@ -3,6 +3,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
@@ -13,6 +14,7 @@ import search.TaskSearcher1;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -39,8 +41,15 @@ public class Main {
         final int expectedDocs = Integer.parseInt(props.getProperty("expectedDocs"));
         final String charsetName = props.getProperty("charsetName");
 
-        final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
+    /*    final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
+*/
+       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
+                .withTokenizer(StandardTokenizerFactory.class).
+                        addTokenFilter(LowerCaseFilterFactory.class).
+                        addTokenFilter(StopFilterFactory.class,
+                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset").
+                        addTokenFilter(PorterStemFilterFactory.class).build();
 
         final Similarity similarity = new BM25Similarity();
 
