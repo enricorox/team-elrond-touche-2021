@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="seupd2021-rs" />
         <module name="elrond-task1" />
+        <module name="bit" />
       </profile>
     </annotationProcessing>
   </component>

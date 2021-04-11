@@ -33,6 +33,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
+import topics.Topics;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -42,9 +43,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Searches a document collection.
@@ -110,6 +109,7 @@ public class Searcher {
      * The query parser
      */
     private final QueryParser qp;
+    //add
 
     /**
      * The maximum number of documents to retrieve
@@ -164,14 +164,14 @@ public class Searcher {
 
         if (!Files.isDirectory(indexDir)) {
             throw new IllegalArgumentException(String.format("%s expected to be a directory where to search the index.",
-                                                             indexDir.toAbsolutePath().toString()));
+                    indexDir.toAbsolutePath().toString()));
         }
 
         try {
             reader = DirectoryReader.open(FSDirectory.open(indexDir));
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to create the index reader for directory %s: %s.",
-                                                             indexDir.toAbsolutePath().toString(), e.getMessage()), e);
+                    indexDir.toAbsolutePath().toString(), e.getMessage()), e);
         }
 
         searcher = new IndexSearcher(reader);
@@ -184,8 +184,24 @@ public class Searcher {
         if (topicsFile.isEmpty()) {
             throw new IllegalArgumentException("Topics file cannot be empty.");
         }
-
         try {
+            //###########################################################
+            //load topics
+            final var list = new ArrayList<QualityQuery>();
+            Topics.loadTopics(topicsFile).topics.forEach(topic -> {
+                final var m = Collections.singletonMap("title", topic.title);
+                final var q = new QualityQuery(Integer.toString(topic.number), m);
+                list.add(q);
+
+            });
+            topics = list.toArray(QualityQuery[]::new);
+            //############################################################
+        } catch (IOException e) {
+            throw new IllegalArgumentException(
+                    String.format("Unable to process topic file %s: %s.", topicsFile, e.getMessage()), e);
+        }
+
+      /*  try {
             BufferedReader in = Files.newBufferedReader(Paths.get(topicsFile), StandardCharsets.UTF_8);
 
             topics = new TrecTopicsReader().readQueries(in);
@@ -194,7 +210,7 @@ public class Searcher {
         } catch (IOException e) {
             throw new IllegalArgumentException(
                     String.format("Unable to process topic file %s: %s.", topicsFile, e.getMessage()), e);
-        }
+        }*/
 
         if (expectedTopics <= 0) {
             throw new IllegalArgumentException(
@@ -203,7 +219,7 @@ public class Searcher {
 
         if (topics.length != expectedTopics) {
             System.out.printf("Expected to search for %s topics; %s topics found instead.", expectedTopics,
-                              topics.length);
+                    topics.length);
         }
 
         qp = new QueryParser(ParsedDocument.FIELDS.BODY, analyzer);
@@ -235,14 +251,14 @@ public class Searcher {
 
         if (!Files.isDirectory(runDir)) {
             throw new IllegalArgumentException(String.format("%s expected to be a directory where to write the run.",
-                                                             runDir.toAbsolutePath().toString()));
+                    runDir.toAbsolutePath().toString()));
         }
 
         Path runFile = runDir.resolve(runID + ".txt");
         try {
             run = new PrintWriter(Files.newBufferedWriter(runFile, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
-                                                          StandardOpenOption.TRUNCATE_EXISTING,
-                                                          StandardOpenOption.WRITE));
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE));
         } catch (IOException e) {
             throw new IllegalArgumentException(
                     String.format("Unable to open run file %s: %s.", runFile.toAbsolutePath(), e.getMessage()), e);
@@ -254,6 +270,7 @@ public class Searcher {
         }
 
         this.maxDocsRetrieved = maxDocsRetrieved;
+
     }
 
     /**
@@ -263,6 +280,35 @@ public class Searcher {
      */
     public long getElapsedTime() {
         return elapsedTime;
+    }
+
+    /**
+     * Main method of the class. Just for testing purposes.
+     *
+     * @param args command line arguments.
+     * @throws Exception if something goes wrong while indexing.
+     */
+    public static void main(String[] args) throws Exception {
+
+        final String topics = "../../collections/TREC_08_1999_AdHoc/topics.txt";
+
+        final String indexPath = "experiment/index-stop-nostem";
+
+        final String runPath = "experiment";
+
+        final String runID = "seupd2021-helloTipster-stop-nostem";
+
+        final int maxDocsRetrieved = 1000;
+
+        final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
+                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
+
+
+        Searcher s = new Searcher(a, new BM25Similarity(), indexPath, topics, 50, runID, runPath, maxDocsRetrieved);
+
+        s.search();
+
+
     }
 
     /**
@@ -287,7 +333,7 @@ public class Searcher {
         ScoreDoc[] sd = null;
         String docID = null;
 
-        try {
+       /* try {
             for (QualityQuery t : topics) {
 
                 System.out.printf("Searching for topic %s.%n", t.getQueryID());
@@ -296,7 +342,9 @@ public class Searcher {
 
                 bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.SHOULD);
                 bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.DESCRIPTION))),
-                       BooleanClause.Occur.SHOULD);
+                        BooleanClause.Occur.SHOULD);
+                bq.add(qp.parse(QueryParserBase.escape(t.getValue(TOPIC_FIELDS.NARRATIVE))),
+                        BooleanClause.Occur.SHOULD);
 
                 q = bq.build();
 
@@ -308,7 +356,40 @@ public class Searcher {
                     docID = reader.document(sd[i].doc, idField).get(ParsedDocument.FIELDS.ID);
 
                     run.printf(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", t.getQueryID(), docID, i, sd[i].score,
-                               runID);
+                            runID);
+                }
+
+                run.flush();
+
+            }
+        } finally {
+            run.close();
+
+            reader.close();
+        }*/
+        try {
+            for (QualityQuery topic_query : topics) {
+
+                System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
+
+                bq = new BooleanQuery.Builder();
+
+                bq.add(qp.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.MUST);
+
+                //I suppose the rank will be better if also this match
+                bq.add(qp.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.SHOULD);
+
+                q = bq.build();
+
+                docs = searcher.search(q, maxDocsRetrieved);
+
+                sd = docs.scoreDocs;
+
+                for (int i = 0, n = sd.length; i < n; i++) {
+                    docID = reader.document(sd[i].doc, idField).get(ParsedDocument.FIELDS.ID);
+
+                    run.printf(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", topic_query.getQueryID(), docID, i, sd[i].score,
+                            runID);
                 }
 
                 run.flush();
@@ -325,34 +406,6 @@ public class Searcher {
         System.out.printf("%d topic(s) searched in %d seconds.", topics.length, elapsedTime / 1000);
 
         System.out.printf("#### Searching complete ####%n");
-    }
-
-    /**
-     * Main method of the class. Just for testing purposes.
-     *
-     * @param args command line arguments.
-     * @throws Exception if something goes wrong while indexing.
-     */
-    public static void main(String[] args) throws Exception {
-
-        final String topics = "../../collections/TREC_08_1999_AdHoc/topics.txt";
-
-        final String indexPath = "experiment/index-stop-nostem";
-
-        final String runPath = "experiment";
-
-        final String runID = "seupd2021-helloTipster-stop-nostem";
-
-        final int maxDocsRetrieved = 1000;
-
-        final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
-                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
-
-        Searcher s = new Searcher(a, new BM25Similarity(), indexPath, topics, 50, runID, runPath, maxDocsRetrieved);
-
-        s.search();
-
-
     }
 
 }
