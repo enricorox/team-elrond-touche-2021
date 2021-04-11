@@ -2,6 +2,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilterFactory;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
@@ -19,10 +20,11 @@ public class TestA {
         final Analyzer a = CustomAnalyzer.builder()
                 .withTokenizer(StandardTokenizerFactory.class)
                 .addTokenFilter(LowerCaseFilterFactory.class)
-                .addTokenFilter(EnglishPossessiveFilterFactory.class)
-                .addTokenFilter(PorterStemFilterFactory.class)
-                .addTokenFilter(StopFilterFactory.class)
-                .addTokenFilter(SynonymGraphFilterFactory.class, synonFilterMap)
+//                .addTokenFilter(EnglishPossessiveFilterFactory.class)
+                .addTokenFilter(EnglishMinimalStemFilterFactory.class)
+//                .addTokenFilter(PorterStemFilterFactory.class)
+//                .addTokenFilter(StopFilterFactory.class)
+//                .addTokenFilter(SynonymGraphFilterFactory.class, synonFilterMap)
                 .build();
         var s = a.tokenStream("body", new InputStreamReader(System.in));
         CharTermAttribute att = s.getAttribute(CharTermAttribute.class);
