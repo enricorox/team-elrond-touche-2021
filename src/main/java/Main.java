@@ -6,17 +6,17 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
+import parse.DocumentParser;
 import parse.Task1Parser;
-import search.Searcher;
-import topics.Topics;
+import search.BasicSearcher;
+import search.TaskSearcher1;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLOutput;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class Main {
-    // load vars from file
     private static Properties loadProps() throws IOException {
         final var in = Main.class.getResourceAsStream("data.properties");
         if (in == null) {
@@ -33,7 +33,6 @@ public class Main {
         final int ramBuffer = 256;
 
         new File(props.getProperty("work_folder")).mkdir();
-        final String indexPath = "%s/%s".formatted(props.getProperty("work_folder"), props.getProperty("index_folder"));
         final var docsPath = props.getProperty("docs_path");
 
         final String extension = props.getProperty("extension");
@@ -43,26 +42,54 @@ public class Main {
         final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 
-        final Similarity sim = new BM25Similarity();
+        final Similarity similarity = new BM25Similarity();
 
-        final String runPath = "experiment";
+        final String runPath = props.getProperty("work_folder");
 
-        final String runID = "task1";
+        final int maxDocsRetrieved = Integer.parseInt(props.getProperty("maxDocsRetrieved"));
 
-        final int maxDocsRetrieved = 1000;
+        final int expectedTopics = Integer.parseInt(props.getProperty("expectedTopics"));
 
-        final int expectedTopics = 50;
+        final var topics = props.getProperty("topics_path");
 
-        // indexing
-        final DirectoryIndexer i = new DirectoryIndexer(a, sim, ramBuffer, indexPath, docsPath, extension, charsetName,
-                expectedDocs, Task1Parser.class);
-        i.index();
+        Arrays.stream(props.getProperty("parseList").split(" ")).forEach(parserName -> {
+            final String indexPath = "%s/index-%s".formatted(props.getProperty("work_folder"), parserName);
+            final Class<? extends DocumentParser> parser = switch (parserName) {
+                case "task1parser" -> Task1Parser.class;
+                default -> throw new IllegalArgumentException("Unknown parser %s".formatted(parserName));
+            };
+            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+            System.out.printf("Start indexing with '%s'...\n", parserName);
+            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+                    expectedDocs, parser);
+            try {
+                i.index();
+                System.out.println("Indexing succeeded");
+            } catch (IOException e) {
+                System.out.println("Indexing failed");
+                e.printStackTrace();
+                return;
+            }
 
-        final String topics = props.getProperty("topics_path");
+            Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
+                final var runID = "%s-%s".formatted(parserName, method);
+                final BasicSearcher searcher = switch (method) {
+                    case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
+                };
+                System.out.println("\n############################################");
+                System.out.printf("Searching with '%s'...\n", method);
+                try {
+                    searcher.search();
+                    System.out.println("  Search succeeded");
+                } catch (Exception e) {
+                    System.out.println("  Search failed");
+                    e.printStackTrace();
+                }
+                System.out.println("############################################");
+            });
 
-        // searching
-        final Searcher s = new Searcher(a, sim, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-        s.search();
-
+            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+        });
     }
 }

@@ -68,6 +68,7 @@ public class Task1Parser extends DocumentParser {
             else throw new IllegalArgumentException("No valid id");
 
             String domain = "";
+            String title = "";
 
             final var body = new StringBuilder(BODY_SIZE);
 
@@ -81,8 +82,7 @@ public class Task1Parser extends DocumentParser {
 
                 // title
                 if (context.hasNonNull("discussionTitle")) {
-                    body.append(context.get("discussionTitle").asText());
-                    body.append(" ");
+                    title = context.get("discussionTitle").asText();
                 }
             }
 
@@ -96,8 +96,11 @@ public class Task1Parser extends DocumentParser {
                 });
             }
 
+//            if (title.isEmpty()) System.err.printf("empty title for doc %s%n", id);
+
             document = new ParsedDocument(
                     id,
+                    title,
                     body.toString(),
                     domain
             );

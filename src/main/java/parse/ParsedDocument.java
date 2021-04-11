@@ -49,6 +49,8 @@ public class ParsedDocument {
         public static final String BODY = "body";
 
         public static final String DOMAIN = "domain";
+
+        public static final String TITLE = "title";
     }
 
 
@@ -64,6 +66,8 @@ public class ParsedDocument {
 
     private final String domain;
 
+    private final String title;
+
     /**
      * Creates a new parsed document
      *
@@ -72,7 +76,7 @@ public class ParsedDocument {
      * @throws NullPointerException  if {@code id} and/or {@code body} are {@code null}.
      * @throws IllegalStateException if {@code id} and/or {@code body} are empty.
      */
-    public ParsedDocument(final String id, final String body, final String domain) {
+    public ParsedDocument(final String id, final String title, final String body, final String domain) {
 
         if (id == null) {
             throw new NullPointerException("Document identifier cannot be null.");
@@ -103,6 +107,11 @@ public class ParsedDocument {
         }
 
         this.domain = domain;
+
+//        if (title.isEmpty()) {
+//            throw new IllegalStateException("Document title cannot be empty.");
+//        }
+        this.title = title;//can be empty
     }
 
     /**
@@ -127,10 +136,17 @@ public class ParsedDocument {
         return domain;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     @Override
     public final String toString() {
-        ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE).append("identifier", id).append(
-                "body", body);
+        ToStringBuilder tsb = new ToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
+                .append("identifier", id)
+                .append("title", title)
+                .append("body", body)
+                .append("domain", domain);
 
         return tsb.toString();
     }
