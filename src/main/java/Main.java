@@ -45,11 +45,12 @@ public class Main {
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 */
        final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
-                .withTokenizer(StandardTokenizerFactory.class).
-                        addTokenFilter(LowerCaseFilterFactory.class).
-                        addTokenFilter(StopFilterFactory.class,
-                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset").
-                        addTokenFilter(PorterStemFilterFactory.class).build();
+                .withTokenizer(StandardTokenizerFactory.class)
+               .addTokenFilter(LowerCaseFilterFactory.class)
+//               .addTokenFilter(StopFilterFactory.class,
+//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+               .addTokenFilter(PorterStemFilterFactory.class)
+               .build();
 
         final Similarity similarity = new BM25Similarity();
 

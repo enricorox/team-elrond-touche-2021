@@ -277,7 +277,6 @@ public class DirectoryIndexer {
                             System.err.printf("Skipped duplicate document %s%n", pd.getIdentifier());
                             continue;
                         } else idSet.add(pd.getIdentifier());
-                        writer.addDocument(doc);
 
                         doc = new Document();
 
@@ -292,6 +291,8 @@ public class DirectoryIndexer {
 
                         //add domain
                         doc.add(new StringField(ParsedDocument.FIELDS.DOMAIN, pd.getDomain(), Field.Store.YES));
+
+                        writer.addDocument(doc);
 
                         docsCount++;
 
