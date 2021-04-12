@@ -33,7 +33,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 
 /**
  * Indexes documents processing a whole directory tree.
@@ -99,7 +98,7 @@ public class DirectoryIndexer {
      */
     private long bytesCount;
 
-    private Map<String, Integer> idMap = new HashMap<>();
+    private final Map<String, Integer> idMap = new HashMap<>();
 
     /**
      * Creates a new indexer.
@@ -161,19 +160,19 @@ public class DirectoryIndexer {
                 Files.createDirectory(indexDir);
             } catch (Exception e) {
                 throw new IllegalArgumentException(
-                        String.format("Unable to create directory %s:.", indexDir.toAbsolutePath().toString(),
+                        String.format("Unable to create directory %s: %s", indexDir.toAbsolutePath(),
                                       e.getMessage()), e);
             }
         }
 
         if (!Files.isWritable(indexDir)) {
             throw new IllegalArgumentException(
-                    String.format("Index directory %s cannot be written.", indexDir.toAbsolutePath().toString()));
+                    String.format("Index directory %s cannot be written.", indexDir.toAbsolutePath()));
         }
 
         if (!Files.isDirectory(indexDir)) {
             throw new IllegalArgumentException(String.format("%s expected to be a directory where to write the index.",
-                                                             indexDir.toAbsolutePath().toString()));
+                    indexDir.toAbsolutePath()));
         }
 
         if (docsPath == null) {
@@ -187,12 +186,12 @@ public class DirectoryIndexer {
         final Path docsDir = Paths.get(docsPath);
         if (!Files.isReadable(docsDir)) {
             throw new IllegalArgumentException(
-                    String.format("Documents directory %s cannot be read.", docsDir.toAbsolutePath().toString()));
+                    String.format("Documents directory %s cannot be read.", docsDir.toAbsolutePath()));
         }
 
         if (!Files.isDirectory(docsDir)) {
             throw new IllegalArgumentException(
-                    String.format("%s expected to be a directory of documents.", docsDir.toAbsolutePath().toString()));
+                    String.format("%s expected to be a directory of documents.", docsDir.toAbsolutePath()));
         }
 
         this.docsDir = docsDir;
@@ -237,7 +236,7 @@ public class DirectoryIndexer {
             writer = new IndexWriter(FSDirectory.open(indexDir), iwc);
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to create the index writer in directory %s: %s.",
-                                                             indexDir.toAbsolutePath().toString(), e.getMessage()), e);
+                    indexDir.toAbsolutePath(), e.getMessage()), e);
         }
 
         this.start = System.currentTimeMillis();
@@ -253,7 +252,7 @@ public class DirectoryIndexer {
 
         System.out.printf("%n#### Start indexing ####%n");
 
-        Files.walkFileTree(docsDir, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(docsDir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (file.getFileName().toString().endsWith(extension)) {
@@ -264,12 +263,12 @@ public class DirectoryIndexer {
 
                     filesCount += 1;
 
-                    Document doc = null;
+                    Document doc;
 
                     for (ParsedDocument pd : dp) {
                         int count = idMap.getOrDefault(pd.getIdentifier(), 0);
                         idMap.put(pd.getIdentifier(), count + 1);
-
+                        if (count > 1) continue;
                         doc = new Document();
 
                         // add the document identifier
@@ -291,8 +290,8 @@ public class DirectoryIndexer {
                         // print progress every 10000 indexed documents
                         if (docsCount % 10000 == 0) {
                             System.out.printf("%d document(s) (%d files, %d Mbytes) indexed in %d seconds.%n",
-                                              docsCount, filesCount, bytesCount / MBYTE,
-                                              (System.currentTimeMillis() - start) / 1000);
+                                    docsCount, filesCount, bytesCount / MBYTE,
+                                    (System.currentTimeMillis() - start) / 1000);
                         }
 
                     }
