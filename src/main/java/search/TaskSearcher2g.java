@@ -305,7 +305,7 @@ public class TaskSearcher2g implements BasicSearcher {
                 Query subQuery = SubsequencePhraseQueryGenerator.createQuery(
                         tokens,
                         groupLen,
-                        TOPIC_FIELDS.TITLE
+                        ParsedDocument.FIELDS.BODY
                 );
                 subQuery = new BoostQuery(subQuery, 2f);
                 booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
@@ -313,7 +313,7 @@ public class TaskSearcher2g implements BasicSearcher {
                 final int groupLen2 = tokens.length - 2;
                 if (groupLen2 != groupLen) {
                     booleanQueryBuilder.add(new BoostQuery(
-                            SubsequencePhraseQueryGenerator.createQuery(tokens, groupLen2, TOPIC_FIELDS.TITLE)
+                            SubsequencePhraseQueryGenerator.createQuery(tokens, groupLen2, ParsedDocument.FIELDS.BODY)
                             , 2f), BooleanClause.Occur.SHOULD);
                 }
 //                else System.err.println("...");
