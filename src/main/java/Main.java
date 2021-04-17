@@ -11,6 +11,7 @@ import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
+import search.TaskSearcher2g;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,19 +73,20 @@ public class Main {
             System.out.printf("Start indexing with '%s'...\n", parserName);
             final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser);
-            try {
-                i.index();
-                System.out.println("Indexing succeeded");
-            } catch (IOException e) {
-                System.out.println("Indexing failed");
-                e.printStackTrace();
-                return;
-            }
+//            try {
+//                i.index();
+//                System.out.println("Indexing succeeded");
+//            } catch (IOException e) {
+//                System.out.println("Indexing failed");
+//                e.printStackTrace();
+//                return;
+//            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
                     case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher2g" -> new TaskSearcher2g(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");
