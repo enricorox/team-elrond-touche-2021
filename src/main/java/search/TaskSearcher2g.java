@@ -34,6 +34,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
+import search.queries.SubsequencePhraseQueryGenerator;
 import topics.Topics;
 
 import java.io.IOException;
@@ -293,22 +294,29 @@ public class TaskSearcher2g implements BasicSearcher {
 
                 Query bodyQuery = bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
                 bodyQuery = new BoostQuery(bodyQuery, 1f);
-                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.MUST);
+                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
 
                 Query titleQuery = titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
-                titleQuery = new BoostQuery(titleQuery, 05f);
+                titleQuery = new BoostQuery(titleQuery, 0.5f);
                 booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
 
-                var phraseQueryBuilder = new PhraseQuery.Builder();
-                for (var t: topic_query.getValue(TOPIC_FIELDS.TITLE).split(" ")) {
-                    t = t.replaceAll("[^a-z]", "");
-//                    System.err.println(t);
-                    phraseQueryBuilder.add(new Term(TOPIC_FIELDS.TITLE, t));
+                final var tokens = topic_query.getValue(TOPIC_FIELDS.TITLE).split(" ");
+                final int groupLen = Math.min(tokens.length, 4);
+                Query subQuery = SubsequencePhraseQueryGenerator.createQuery(
+                        tokens,
+                        groupLen,
+                        TOPIC_FIELDS.TITLE
+                );
+                subQuery = new BoostQuery(subQuery, 2f);
+                booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
+
+                final int groupLen2 = tokens.length - 2;
+                if (groupLen2 != groupLen) {
+                    booleanQueryBuilder.add(new BoostQuery(
+                            SubsequencePhraseQueryGenerator.createQuery(tokens, groupLen2, TOPIC_FIELDS.TITLE)
+                            , 2f), BooleanClause.Occur.SHOULD);
                 }
-//                if (true) System.exit(0);
-                Query phQuery = phraseQueryBuilder.build();
-                phQuery = new BoostQuery(phQuery, 2f);
-                booleanQueryBuilder.add(phQuery, BooleanClause.Occur.SHOULD);
+//                else System.err.println("...");
 
                 query = booleanQueryBuilder.build();
 
