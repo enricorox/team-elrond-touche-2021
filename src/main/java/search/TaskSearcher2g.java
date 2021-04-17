@@ -113,6 +113,8 @@ public class TaskSearcher2g implements BasicSearcher {
      */
     private long elapsedTime = Long.MIN_VALUE;
 
+    private final Analyzer analyzer;
+
 
     /**
      * Creates a new searcher.
@@ -135,6 +137,7 @@ public class TaskSearcher2g implements BasicSearcher {
         if (analyzer == null) {
             throw new NullPointerException("Analyzer cannot be null.");
         }
+        this.analyzer = analyzer;
 
         if (similarity == null) {
             throw new NullPointerException("Similarity cannot be null.");
@@ -300,23 +303,34 @@ public class TaskSearcher2g implements BasicSearcher {
                 titleQuery = new BoostQuery(titleQuery, 0.5f);
                 booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
 
-                final var tokens = topic_query.getValue(TOPIC_FIELDS.TITLE).split(" ");
-                final int groupLen = Math.min(tokens.length, 4);
+                final var stringQuery = topic_query.getValue(TOPIC_FIELDS.TITLE);
+                final int groupLen = 4;
                 Query subQuery = SubsequencePhraseQueryGenerator.createQuery(
-                        tokens,
+                        stringQuery,
+                        analyzer,
                         groupLen,
-                        ParsedDocument.FIELDS.BODY
+                        ParsedDocument.FIELDS.BODY,
+                        termNum -> termNum //fallback with groupLen == termNum
                 );
-                subQuery = new BoostQuery(subQuery, 2f);
+                subQuery = new BoostQuery(Objects.requireNonNull(subQuery), 2f);
                 booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
 
-                final int groupLen2 = tokens.length - 2;
-                if (groupLen2 != groupLen) {
-                    booleanQueryBuilder.add(new BoostQuery(
-                            SubsequencePhraseQueryGenerator.createQuery(tokens, groupLen2, ParsedDocument.FIELDS.BODY)
-                            , 2f), BooleanClause.Occur.SHOULD);
+                var subQuery2 = SubsequencePhraseQueryGenerator.createQuery(
+                        stringQuery,
+                        analyzer,
+                        0, // callback will be executed
+                        ParsedDocument.FIELDS.BODY,
+                        termNum -> {
+                            int len = termNum - 2;
+                            if (len != groupLen && len >= 2) return len;
+                            return 0; //abort
+                        }
+                );
+                if (subQuery2 != null) {
+                    subQuery2 = new BoostQuery(subQuery2, 2f);
+                    booleanQueryBuilder.add(subQuery2, BooleanClause.Occur.SHOULD);
                 }
-//                else System.err.println("...");
+                else System.err.println("skipped subQuery2");
 
                 query = booleanQueryBuilder.build();
 
