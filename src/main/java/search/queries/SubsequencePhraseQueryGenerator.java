@@ -12,12 +12,8 @@ import org.apache.lucene.search.Query;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SubsequencePhraseQueryGenerator {
-    private static final Pattern symbolsPattern = Pattern.compile("[^a-z]");
-
     private static class MyTerm {
         private final List<String> subTerms = new ArrayList<>();
 
@@ -38,22 +34,23 @@ public class SubsequencePhraseQueryGenerator {
         public int size() {return seq.size();}
     }
 
-    public static interface groupLenTooBigCallback {
+    public static interface InvalidGroupLenCallback {
         //return a new groupLen or a number <= 0 for abort
         int callback(int termNum);
     }
 
     public static Query createQuery(String query, Analyzer analyzer, int groupLen, String field) throws IOException {
-        return createQuery(query, analyzer, groupLen, field, tokenNum -> {
-            throw new IllegalArgumentException("groupLen is too big");
+        return createQuery(query, analyzer, groupLen, field, termNum -> {
+            if (termNum > 0) throw new IllegalArgumentException("groupLen is too big!");
+            throw new IllegalArgumentException("groupLen is not valid!");
         });
     }
 
-    public static Query createQuery(String query, Analyzer analyzer, int groupLen, String field, groupLenTooBigCallback groupLenTooBigCallback) throws IOException {
+    public static Query createQuery(String query, Analyzer analyzer, int groupLen, String field, InvalidGroupLenCallback invalidGroupLenCallback) throws IOException {
         final var booleanQueryBuilder = new BooleanQuery.Builder();
         final var preparedTerms = prepareTerms(query, analyzer, field);
         if (groupLen > preparedTerms.size() || groupLen <= 0) {
-            groupLen = groupLenTooBigCallback.callback(preparedTerms.size());
+            groupLen = invalidGroupLenCallback.callback(preparedTerms.size());
             if (groupLen <= 0) return null;
             if (groupLen > preparedTerms.size()) throw new IllegalArgumentException("groupLen is too big");
         }
