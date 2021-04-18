@@ -1,3 +1,4 @@
+import analysis.MyAnalyzer;
 import index.DirectoryIndexer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
@@ -44,13 +45,15 @@ public class Main {
 //        final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
 //                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 
-       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
-                .withTokenizer(StandardTokenizerFactory.class)
-               .addTokenFilter(LowerCaseFilterFactory.class)
-//               .addTokenFilter(StopFilterFactory.class,
+//       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
+//               .withTokenizer(StandardTokenizerFactory.class)
+//               .addTokenFilter(LowerCaseFilterFactory.class)
+//             .addTokenFilter(StopFilterFactory.class,
 //                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
-               .addTokenFilter(PorterStemFilterFactory.class)
-               .build();
+//               .addTokenFilter(PorterStemFilterFactory.class)
+//               .build();
+
+        final Analyzer a = new MyAnalyzer();
 
         final Similarity similarity = new BM25Similarity();
 
@@ -75,7 +78,7 @@ public class Main {
             try {
                 i.index();
                 System.out.println("Indexing succeeded");
-                i.printDuplicates();
+                //i.printDuplicates();
             } catch (IOException e) {
                 System.out.println("Indexing failed");
                 e.printStackTrace();

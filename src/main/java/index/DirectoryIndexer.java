@@ -267,8 +267,9 @@ public class DirectoryIndexer {
 
                     for (ParsedDocument pd : dp) {
                         int count = idMap.getOrDefault(pd.getIdentifier(), 0);
-                        idMap.put(pd.getIdentifier(), count + 1);
+                        idMap.put(pd.getIdentifier(), ++count);
                         if (count > 1) continue;
+
                         doc = new Document();
 
                         // add the document identifier
@@ -279,9 +280,6 @@ public class DirectoryIndexer {
 
                         // add the document body
                         doc.add(new BodyField(pd.getBody()));
-
-                        //add domain
-                        doc.add(new StringField(ParsedDocument.FIELDS.DOMAIN, pd.getDomain(), Field.Store.YES));
 
                         writer.addDocument(doc);
 
