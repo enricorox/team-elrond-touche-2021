@@ -282,7 +282,7 @@ public class TaskSearcher2g implements BasicSearcher {
         final Set<String> idField = new HashSet<>();
         idField.add(ParsedDocument.FIELDS.ID);
 
-        BooleanQuery.Builder booleanQueryBuilder = null;
+//        BooleanQuery.Builder booleanQueryBuilder = null;
         Query query = null;
         TopDocs docs = null;
         ScoreDoc[] scoreDocs = null;
@@ -293,15 +293,18 @@ public class TaskSearcher2g implements BasicSearcher {
 
                 System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
 
-                booleanQueryBuilder = new BooleanQuery.Builder();
+//                booleanQueryBuilder = new BooleanQuery.Builder();
+                List<Query> queries = new ArrayList<>();
 
                 Query bodyQuery = bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
                 bodyQuery = new BoostQuery(bodyQuery, 1f);
-                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
+//                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
+                queries.add(bodyQuery);
 
                 Query titleQuery = titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
                 titleQuery = new BoostQuery(titleQuery, 2f);
-                booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
+//                booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
+                queries.add(titleQuery);
 
                 final var stringQuery = topic_query.getValue(TOPIC_FIELDS.TITLE);
                 final int groupLen = 3;
@@ -313,7 +316,8 @@ public class TaskSearcher2g implements BasicSearcher {
                         termNum -> termNum //fallback with groupLen == termNum
                 );
                 subQuery = new BoostQuery(Objects.requireNonNull(subQuery), 2f);
-                booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
+//                booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
+                queries.add(subQuery);
 
 //                var subQuery2 = SubsequencePhraseQueryGenerator.createQuery(
 //                        stringQuery,
@@ -332,7 +336,8 @@ public class TaskSearcher2g implements BasicSearcher {
 //                }
 //                else System.err.println("skipped subQuery2");
 
-                query = booleanQueryBuilder.build();
+//                query = booleanQueryBuilder.build();
+                query = new DisjunctionMaxQuery(queries, 0.4f);
 
                 docs = searcher.search(query, maxDocsRetrieved);
 
