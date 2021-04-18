@@ -13,6 +13,7 @@ import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
 import search.TaskSearcher2g;
+import utils.Props;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,14 +22,12 @@ import java.util.Arrays;
 import java.util.Properties;
 
 public class Main {
-    private static Properties loadProps() throws IOException {
-        final var in = Main.class.getResourceAsStream("data.properties");
-        if (in == null) {
+    private static Properties loadProps() {
+        try {
+            return Props.loadProps(Main.class, "data.properties");
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Copy example.properties as data.properties and edit it");
         }
-        final var prop = new Properties();
-        prop.load(in);
-        return prop;
     }
 
     public static void main(String[] args) throws Exception {
