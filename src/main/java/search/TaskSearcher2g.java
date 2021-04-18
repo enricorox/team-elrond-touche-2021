@@ -300,11 +300,11 @@ public class TaskSearcher2g implements BasicSearcher {
                 booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
 
                 Query titleQuery = titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
-                titleQuery = new BoostQuery(titleQuery, 0.5f);
+                titleQuery = new BoostQuery(titleQuery, 2f);
                 booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
 
                 final var stringQuery = topic_query.getValue(TOPIC_FIELDS.TITLE);
-                final int groupLen = 4;
+                final int groupLen = 3;
                 Query subQuery = SubsequencePhraseQueryGenerator.createQuery(
                         stringQuery,
                         analyzer,
@@ -315,22 +315,22 @@ public class TaskSearcher2g implements BasicSearcher {
                 subQuery = new BoostQuery(Objects.requireNonNull(subQuery), 2f);
                 booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
 
-                var subQuery2 = SubsequencePhraseQueryGenerator.createQuery(
-                        stringQuery,
-                        analyzer,
-                        0, // callback will be executed
-                        ParsedDocument.FIELDS.BODY,
-                        termNum -> {
-                            int len = termNum - 2;
-                            if (len != groupLen && len >= 2) return len;
-                            return 0; //abort
-                        }
-                );
-                if (subQuery2 != null) {
-                    subQuery2 = new BoostQuery(subQuery2, 2f);
-                    booleanQueryBuilder.add(subQuery2, BooleanClause.Occur.SHOULD);
-                }
-                else System.err.println("skipped subQuery2");
+//                var subQuery2 = SubsequencePhraseQueryGenerator.createQuery(
+//                        stringQuery,
+//                        analyzer,
+//                        0, // callback will be executed
+//                        ParsedDocument.FIELDS.BODY,
+//                        termNum -> {
+//                            int len = termNum - 2;
+//                            if (len != groupLen && len >= 2) return len;
+//                            return 0; //abort
+//                        }
+//                );
+//                if (subQuery2 != null) {
+//                    subQuery2 = new BoostQuery(subQuery2, 2f);
+//                    booleanQueryBuilder.add(subQuery2, BooleanClause.Occur.SHOULD);
+//                }
+//                else System.err.println("skipped subQuery2");
 
                 query = booleanQueryBuilder.build();
 

@@ -3,6 +3,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
@@ -48,6 +49,7 @@ public class Main {
        final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
+               .addTokenFilter(EnglishMinimalStemFilterFactory.class)
                .addTokenFilter(StopFilterFactory.class,
                                 "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
                .addTokenFilter(PorterStemFilterFactory.class)
