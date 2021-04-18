@@ -1,5 +1,6 @@
 package analyzers;
 
+import analyzers.filters.CustomSynonymsFilter;
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
@@ -10,9 +11,14 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import utils.StopWords;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
+
 
 public class MyAnalyzer extends Analyzer {
+    private final boolean includeSynonyms;
+
+    public MyAnalyzer(boolean includeSynonyms) {
+        this.includeSynonyms = includeSynonyms;
+    }
 
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
@@ -20,6 +26,7 @@ public class MyAnalyzer extends Analyzer {
 
         TokenStream tokenStream = normalize(fieldName, tokenizer);
         tokenStream = new EnglishPossessiveFilter(tokenStream);
+        if (includeSynonyms) tokenStream = new CustomSynonymsFilter(tokenStream);
         tokenStream = new EnglishMinimalStemFilter(tokenStream);
         tokenStream = new StopFilter(tokenStream, StopWords.loadStopWords("99webtools.txt"));
         tokenStream = new PorterStemFilter(tokenStream);
@@ -33,8 +40,9 @@ public class MyAnalyzer extends Analyzer {
     }
 
     public static void main(String[] args) throws IOException {
-        final var analyzer = new MyAnalyzer();
-        final var testText = "The cat! It's on the table!";
+        final var analyzer = new MyAnalyzer(true);
+//        final var testText = "The cat! It's on the table!";
+        final var testText = "cat";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute incrementAttribute = stream.getAttribute(PositionIncrementAttribute.class);
@@ -42,9 +50,11 @@ public class MyAnalyzer extends Analyzer {
         while (stream.incrementToken()) {
             final var token = att.toString();
             final var synonym = incrementAttribute.getPositionIncrement() == 0;
-            System.out.printf("Token: '%s'%n" +
-                    "  synonym: %s%n" +
-                    "%n", token, synonym);
+            if (synonym) {
+                System.out.printf("       %s%n", token);
+            } else {
+                System.out.printf("Token: %s%n", token);
+            }
         }
     }
 }

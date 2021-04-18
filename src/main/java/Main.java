@@ -1,3 +1,4 @@
+import analyzers.MyAnalyzer;
 import index.DirectoryIndexer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
@@ -45,14 +46,18 @@ public class Main {
     /*    final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 */
-       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
-                .withTokenizer(StandardTokenizerFactory.class)
-               .addTokenFilter(LowerCaseFilterFactory.class)
-               .addTokenFilter(EnglishMinimalStemFilterFactory.class)
-               .addTokenFilter(StopFilterFactory.class,
-                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
-               .addTokenFilter(PorterStemFilterFactory.class)
-               .build();
+//       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
+//                .withTokenizer(StandardTokenizerFactory.class)
+//               .addTokenFilter(LowerCaseFilterFactory.class)
+//               .addTokenFilter(EnglishMinimalStemFilterFactory.class)
+//               .addTokenFilter(StopFilterFactory.class,
+//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+//               .addTokenFilter(PorterStemFilterFactory.class)
+//               .build();
+//       final Analyzer a2 = a;
+        final Analyzer a = new MyAnalyzer(false);
+        final Analyzer a2 =a;
+//        final Analyzer a2 = new MyAnalyzer(true);
 
         final Similarity similarity = new BM25Similarity();
 
@@ -74,20 +79,20 @@ public class Main {
             System.out.printf("Start indexing with '%s'...\n", parserName);
             final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser);
-//            try {
-//                i.index();
-//                System.out.println("Indexing succeeded");
-//            } catch (IOException e) {
-//                System.out.println("Indexing failed");
-//                e.printStackTrace();
-//                return;
-//            }
+            try {
+                i.index();
+                System.out.println("Indexing succeeded");
+            } catch (IOException e) {
+                System.out.println("Indexing failed");
+                e.printStackTrace();
+                return;
+            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
-                    case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher2g" -> new TaskSearcher2g(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher1" -> new TaskSearcher1(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher2g" -> new TaskSearcher2g(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");
