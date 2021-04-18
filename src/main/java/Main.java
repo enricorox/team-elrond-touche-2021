@@ -79,7 +79,7 @@ public class Main {
                 i.index();
                 System.out.println("Indexing succeeded");
                 //i.printDuplicates();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 System.out.println("Indexing failed");
                 e.printStackTrace();
                 return;
