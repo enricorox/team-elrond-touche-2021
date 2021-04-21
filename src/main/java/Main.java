@@ -1,5 +1,7 @@
 import analyzers.MyAnalyzer;
+import analyzers.OpenNlpAnalyzer;
 import index.DirectoryIndexer;
+import index.DirectoryIndexerMT;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
@@ -14,6 +16,7 @@ import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
 import search.TaskSearcher2g;
+import search.TaskSearcher3g;
 import utils.Props;
 
 import java.io.File;
@@ -55,9 +58,12 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-        final Analyzer a = new MyAnalyzer(false, false);
-        final Analyzer a2 = new MyAnalyzer(true, true);
+        final Analyzer a = new OpenNlpAnalyzer(true);
+        final Analyzer a2 = a;
 //        final Analyzer a2 = new MyAnalyzer(true);
+
+        final int numThreads = 12;
+        final double threadsFact = 1.5;
 
         final Similarity similarity = new BM25Similarity();
 
@@ -77,22 +83,25 @@ public class Main {
             };
             System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
             System.out.printf("Start indexing with '%s'...\n", parserName);
-            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
-                    expectedDocs, parser);
-//            try {
-//                i.index();
-//                System.out.println("Indexing succeeded");
-//            } catch (IOException e) {
-//                System.out.println("Indexing failed");
-//                e.printStackTrace();
-//                return;
-//            }
+//            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+//                    expectedDocs, parser);
+            final DirectoryIndexerMT i = new DirectoryIndexerMT(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+                    expectedDocs, parser, numThreads, threadsFact);
+            try {
+                i.index();
+                System.out.println("Indexing succeeded");
+            } catch (IOException e) {
+                System.out.println("Indexing failed");
+                e.printStackTrace();
+                return;
+            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
                     case "taskSearcher1" -> new TaskSearcher1(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
                     case "taskSearcher2g" -> new TaskSearcher2g(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher3g" -> new TaskSearcher3g(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");
