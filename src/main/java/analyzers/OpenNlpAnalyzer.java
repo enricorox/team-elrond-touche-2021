@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenNlpAnalyzer extends Analyzer {
-    private boolean typesToSynonyms;
+    private final boolean typesToSynonyms;
 
     public OpenNlpAnalyzer(boolean typesToSynonyms) {
         this.typesToSynonyms = typesToSynonyms;
