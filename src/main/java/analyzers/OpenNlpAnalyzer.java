@@ -44,7 +44,7 @@ public class OpenNlpAnalyzer extends Analyzer {
         stream = new RemoveTypesFilter(stream, typesToRemove);
         stream = new LowerCaseFilter(stream);
         if (typesToSynonyms) {
-            stream = new MarkTypeFilter(stream);
+            stream = new MarkTypeFilter(stream, '<', '>');
             stream = new TypeAsSynonymFilter(stream);
         }
         return new TokenStreamComponents(tokenizer, stream);
