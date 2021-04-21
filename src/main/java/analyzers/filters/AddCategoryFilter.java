@@ -1,13 +1,43 @@
 package analyzers.filters;
 
+import org.apache.lucene.analysis.TokenFilter;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+
 import java.io.*;
 import java.util.*;
 
-public class AddCategoryFilter {
+public class AddCategoryFilter extends TokenFilter {
     private final Map<String, String> categoryMap = new HashMap<>();
+    private String lastCategory = null;
 
-    public AddCategoryFilter() {
+    private final CharTermAttribute charTermAttribute;
+    private final PositionIncrementAttribute positionIncrementAttribute;
+
+    public AddCategoryFilter(TokenStream stream) {
+        super(stream);
+        charTermAttribute = addAttribute(CharTermAttribute.class);
+        positionIncrementAttribute = addAttribute(PositionIncrementAttribute.class);
         loadCategories();
+    }
+
+    @Override
+    public boolean incrementToken() throws IOException {
+        if (lastCategory != null) {
+            charTermAttribute.setEmpty().append(lastCategory);
+            lastCategory = null;
+            positionIncrementAttribute.setPositionIncrement(0);
+            return true;
+        }
+
+        if (!input.incrementToken()) return false;
+
+        final var token = charTermAttribute.toString();
+        lastCategory = categoryMap.get(token);
+//        charTermAttribute.setEmpty().append(token);
+        positionIncrementAttribute.setPositionIncrement(1);
+        return true;
     }
 
     private void loadCategories() {
@@ -37,9 +67,5 @@ public class AddCategoryFilter {
             }
         }
         System.err.printf("Loaded %d categorized words%n", categoryMap.size());
-    }
-
-    public static void main(String[] args) {
-        final var f = new AddCategoryFilter();
     }
 }

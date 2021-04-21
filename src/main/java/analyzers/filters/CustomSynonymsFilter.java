@@ -53,7 +53,7 @@ public class CustomSynonymsFilter extends TokenFilter {
                 remainingSynonyms.add(s);
             }
         }
-        charTermAttribute.setEmpty().append(token);
+//        charTermAttribute.setEmpty().append(token);
         positionIncrementAttribute.setPositionIncrement(1);
         return true;
     }

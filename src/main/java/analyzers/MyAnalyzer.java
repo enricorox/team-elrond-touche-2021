@@ -1,5 +1,6 @@
 package analyzers;
 
+import analyzers.filters.AddCategoryFilter;
 import analyzers.filters.CustomSynonymsFilter;
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
@@ -15,9 +16,11 @@ import java.io.IOException;
 
 public class MyAnalyzer extends Analyzer {
     private final boolean includeSynonyms;
+    private final boolean includeCategories;
 
-    public MyAnalyzer(boolean includeSynonyms) {
+    public MyAnalyzer(boolean includeSynonyms, boolean includeCategories) {
         this.includeSynonyms = includeSynonyms;
+        this.includeCategories = includeCategories;
     }
 
     @Override
@@ -29,6 +32,7 @@ public class MyAnalyzer extends Analyzer {
         if (includeSynonyms) tokenStream = new CustomSynonymsFilter(tokenStream);
         tokenStream = new EnglishMinimalStemFilter(tokenStream);
         tokenStream = new StopFilter(tokenStream, StopWords.loadStopWords("99webtools.txt"));
+        if (includeCategories) tokenStream = new AddCategoryFilter(tokenStream);
         tokenStream = new PorterStemFilter(tokenStream);
 
         return new TokenStreamComponents(tokenizer, tokenStream);
@@ -40,9 +44,9 @@ public class MyAnalyzer extends Analyzer {
     }
 
     public static void main(String[] args) throws IOException {
-        final var analyzer = new MyAnalyzer(true);
-//        final var testText = "The cat! It's on the table!";
-        final var testText = "cat";
+        final var analyzer = new MyAnalyzer(false, true);
+        final var testText = "The cat! It's on the table!";
+//        final var testText = "cat";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute incrementAttribute = stream.getAttribute(PositionIncrementAttribute.class);

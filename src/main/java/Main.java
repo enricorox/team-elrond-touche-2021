@@ -55,8 +55,8 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-        final Analyzer a = new MyAnalyzer(false);
-        final Analyzer a2 =a;
+        final Analyzer a = new MyAnalyzer(false, false);
+        final Analyzer a2 = new MyAnalyzer(true, true);
 //        final Analyzer a2 = new MyAnalyzer(true);
 
         final Similarity similarity = new BM25Similarity();
@@ -79,14 +79,14 @@ public class Main {
             System.out.printf("Start indexing with '%s'...\n", parserName);
             final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser);
-            try {
-                i.index();
-                System.out.println("Indexing succeeded");
-            } catch (IOException e) {
-                System.out.println("Indexing failed");
-                e.printStackTrace();
-                return;
-            }
+//            try {
+//                i.index();
+//                System.out.println("Indexing succeeded");
+//            } catch (IOException e) {
+//                System.out.println("Indexing failed");
+//                e.printStackTrace();
+//                return;
+//            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
