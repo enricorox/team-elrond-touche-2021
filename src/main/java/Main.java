@@ -63,7 +63,7 @@ public class Main {
 //        final Analyzer a2 = new MyAnalyzer(true);
 
         final int numThreads = 12;
-        final double threadsFact = 1.5;
+        final double threadsFact = 3;
 
         final Similarity similarity = new BM25Similarity();
 

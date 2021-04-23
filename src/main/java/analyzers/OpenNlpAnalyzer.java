@@ -1,8 +1,6 @@
 package analyzers;
 
-import analyzers.filters.MarkTypeFilter;
-import analyzers.filters.OpenNLPNERFilter;
-import analyzers.filters.RemoveTypesFilter;
+import analyzers.filters.*;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
@@ -52,16 +50,17 @@ public class OpenNlpAnalyzer extends Analyzer {
         TokenStream stream;
 
         stream = createNLPPOSFilter(tokenizer, loader);
-        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
         stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
         stream = new RemoveTypesFilter(stream, stopTypes);
         stream = new LowerCaseFilter(stream);
-        stream = new MarkTypeFilter(stream);
-        stream = new TypeAsSynonymFilter(stream);
+        stream = new TypeConcatenateSynonymFilter(stream);
+//        stream = new TypeAsSynonymFilter(stream);
+
         return new TokenStreamComponents(tokenizer, stream);
     }
 

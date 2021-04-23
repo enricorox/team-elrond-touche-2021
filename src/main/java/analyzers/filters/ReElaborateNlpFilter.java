@@ -9,14 +9,14 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import java.io.IOException;
 
-public class SeparateNlpFilter extends TokenFilter {
+public class ReElaborateNlpFilter extends TokenFilter {
     private final Strategy strategy;
 
     private final CharTermAttribute charTermAttribute;
     private final PositionIncrementAttribute positionIncrementAttribute;
     private final TypeAttribute typeAttribute;
 
-    public SeparateNlpFilter(TokenStream input, Strategy strategy) {
+    public ReElaborateNlpFilter(TokenStream input, Strategy strategy) {
         super(input);
         this.strategy = strategy;
         charTermAttribute = addAttribute(CharTermAttribute.class);
@@ -30,6 +30,7 @@ public class SeparateNlpFilter extends TokenFilter {
             case ORIGINAL_ONLY -> originalOnlyIT();
             case TYPES_ONLY -> typesOnlyIT();
             case RESTORE_TYPES -> restoreTypesIT();
+            case CONCATENATE -> concateneteIT();
         };
     }
 
@@ -79,6 +80,18 @@ public class SeparateNlpFilter extends TokenFilter {
         return true;
     }
 
+    private boolean concateneteIT() throws IOException {
+        if (!restoreTypesIT()) return false;
+        final var token = charTermAttribute.toString();
+        final var type = typeAttribute.type();
+        charTermAttribute.setEmpty()
+                .append('<')
+                .append(type)
+                .append('>')
+                .append(token);
+        return true;
+    }
+
     private boolean isNlpSynType(final String token) {
         return (token.charAt(0) == '<') && (token.charAt(token.length()-1) == '>');
     }
@@ -86,7 +99,8 @@ public class SeparateNlpFilter extends TokenFilter {
     public enum Strategy {
         ORIGINAL_ONLY, //remove types synonyms
         TYPES_ONLY, //keep only types synonyms
-        RESTORE_TYPES //remove type synonyms and set them as type attribute
+        RESTORE_TYPES, //remove type synonyms and set them as type attribute
+        CONCATENATE //concatenate type like <type>term
     }
 
     public static void main(String[] args) throws IOException {
@@ -95,8 +109,9 @@ public class SeparateNlpFilter extends TokenFilter {
         var stream = analyzer.tokenStream("body", testText);
 //        final var strategy = Strategy.ORIGINAL_ONLY;
 //        final var strategy = Strategy.TYPES_ONLY;
-        final var strategy = Strategy.RESTORE_TYPES;
-        stream = new SeparateNlpFilter(stream, strategy);
+//        final var strategy = Strategy.RESTORE_TYPES;
+        final var strategy = Strategy.CONCATENATE;
+        stream = new ReElaborateNlpFilter(stream, strategy);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);
         TypeAttribute typeAttribute = stream.addAttribute(TypeAttribute.class);

@@ -303,6 +303,8 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
 
+                //create query
+
                 Query bodyQuery = bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
                 bodyQuery = new BoostQuery(bodyQuery, 1f);
 
@@ -315,6 +317,7 @@ public class TaskSearcher3g implements BasicSearcher {
                     .build();
 
 
+                //submit search
                 final var f = threadPool.submit(() -> {
                     final var docs = searcher.search(query, maxDocsRetrieved);
                     return new FutureSearchResult(docs, topic_query.getQueryID());
