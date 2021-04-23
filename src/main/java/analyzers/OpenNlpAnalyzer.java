@@ -52,11 +52,11 @@ public class OpenNlpAnalyzer extends Analyzer {
         TokenStream stream;
 
         stream = createNLPPOSFilter(tokenizer, loader);
-        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin", '[', ']');
-        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin", '[', ']');
-        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin", '[', ']');
-        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin", '[', ']');
-        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin", '[', ']');
+        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
         stream = new RemoveTypesFilter(stream, stopTypes);
         stream = new LowerCaseFilter(stream);
@@ -65,11 +65,10 @@ public class OpenNlpAnalyzer extends Analyzer {
         return new TokenStreamComponents(tokenizer, stream);
     }
 
-    private TokenStream createNLPNERFilter(TokenStream stream, ClasspathResourceLoader loader, String name, char start, char end) {
+    private TokenStream createNLPNERFilter(TokenStream stream, ClasspathResourceLoader loader, String name) {
         try {
             final var nerMd = OpenNLPOpsFactory.getNERTaggerModel("opennlp/" + name, loader);
             final var tag = new NLPNERTaggerOp(nerMd);
-//            return new OpenNlpNerAsSynonymFilter(stream, tag, start, end);
             return new OpenNLPNERFilter(stream, tag);
         } catch (IOException e) {
             throw new IllegalStateException(e);
