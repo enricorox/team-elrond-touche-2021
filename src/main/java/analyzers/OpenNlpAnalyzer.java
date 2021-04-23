@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
 import org.apache.lucene.analysis.opennlp.tools.*;
@@ -74,6 +75,8 @@ public class OpenNlpAnalyzer extends Analyzer {
             case TYPED_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.TYPE_C_TOKEN);
             case NONE -> stream;
         };
+
+        stream = new PorterStemFilter(stream);
 
         return new TokenStreamComponents(tokenizer, stream);
     }

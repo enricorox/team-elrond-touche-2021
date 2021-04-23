@@ -320,10 +320,10 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 //create query
                 Query bodyQuery = bodyQueryParser.parse(escapedTopic);
-                bodyQuery = new BoostQuery(bodyQuery, 1f);
+                bodyQuery = new BoostQuery(bodyQuery, 2f);
 
                 Query titleQuery = titleQueryParser.parse(escapedTopic);
-                titleQuery = new BoostQuery(titleQuery, 2f);
+                titleQuery = new BoostQuery(titleQuery, 1f);
 
                 Query normalQuery = new BooleanQuery.Builder()
                     .add(bodyQuery, BooleanClause.Occur.SHOULD)
@@ -331,10 +331,10 @@ public class TaskSearcher3g implements BasicSearcher {
                     .build();
 
                 Query typedBodyQuery = typedBodyQueryParser.parse(escapedTopic);
-                typedBodyQuery = new BoostQuery(typedBodyQuery, 1f);
+                typedBodyQuery = new BoostQuery(typedBodyQuery, 2f);
 
                 Query typedTitleQuery = typedTitleQueryParser.parse(escapedTopic);
-                typedTitleQuery = new BoostQuery(typedTitleQuery, 2f);
+                typedTitleQuery = new BoostQuery(typedTitleQuery, 1f);
 
                 Query typedQuery = new BooleanQuery.Builder()
                         .add(typedBodyQuery, BooleanClause.Occur.SHOULD)
