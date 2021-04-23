@@ -79,14 +79,14 @@ public class Main {
 //                    expectedDocs, parser);
             final DirectoryIndexerMT i = new DirectoryIndexerMT(indexAnalyzer, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser, numThreads, threadsFact);
-            try {
-                i.index();
-                System.out.println("Indexing succeeded");
-            } catch (IOException e) {
-                System.out.println("Indexing failed");
-                e.printStackTrace();
-                return;
-            }
+//            try {
+//                i.index();
+//                System.out.println("Indexing succeeded");
+//            } catch (IOException e) {
+//                System.out.println("Indexing failed");
+//                e.printStackTrace();
+//                return;
+//            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);

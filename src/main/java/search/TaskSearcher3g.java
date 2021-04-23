@@ -16,7 +16,6 @@
 
 package search;
 
-import analyzers.filters.SeparateTokenTypesFilter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
@@ -25,6 +24,7 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.benchmark.quality.QualityQuery;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
@@ -33,6 +33,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
+import search.queries.PhraseQueryGenerator;
 import topics.Topics;
 
 import java.io.IOException;
@@ -47,6 +48,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Searches a document collection.
@@ -318,7 +320,9 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 final var escapedTopic = QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE));
 
-                //create query
+                //create queries
+
+                // NORMAL QUERY
                 Query bodyQuery = bodyQueryParser.parse(escapedTopic);
                 bodyQuery = new BoostQuery(bodyQuery, 2f);
 
@@ -329,7 +333,10 @@ public class TaskSearcher3g implements BasicSearcher {
                     .add(bodyQuery, BooleanClause.Occur.SHOULD)
                     .add(titleQuery, BooleanClause.Occur.SHOULD)
                     .build();
+                normalQuery = new BoostQuery(normalQuery, 1f);
+                ////////////////////
 
+                // TYPED QUERY
                 Query typedBodyQuery = typedBodyQueryParser.parse(escapedTopic);
                 typedBodyQuery = new BoostQuery(typedBodyQuery, 2f);
 
@@ -340,11 +347,40 @@ public class TaskSearcher3g implements BasicSearcher {
                         .add(typedBodyQuery, BooleanClause.Occur.SHOULD)
                         .add(typedTitleQuery, BooleanClause.Occur.SHOULD)
                         .build();
+                typedQuery = new BoostQuery(typedQuery, 2f);
+                //////////////////////
 
+                //PHRASE QUERY
+                final var phraseQueryBuilder = new BooleanQuery.Builder();
+                final List<String[]> phraseList = new ArrayList<>();
+                AtomicReference<String> tmp = new AtomicReference<>(null);
+                Arrays.stream(escapedTopic.split(" ")).forEach(s -> {
+                    if (tmp.get() != null) {
+                        phraseList.add(new String[]{tmp.get(), s});
+                    }
+                    tmp.set(s);
+                });
+                phraseList.forEach(phrase -> {
+                    final var bodyQBuilder = new PhraseQuery.Builder();
+                    final var titleQBuilder = new PhraseQuery.Builder();
+                    for (final var t: phrase) {
+                        bodyQBuilder.add(new Term(ParsedDocument.FIELDS.BODY, t));
+                        titleQBuilder.add(new Term(ParsedDocument.FIELDS.TITLE, t));
+                    }
+                    phraseQueryBuilder.add(bodyQBuilder.build(), BooleanClause.Occur.SHOULD);
+                    phraseQueryBuilder.add(titleQBuilder.build(), BooleanClause.Occur.SHOULD);
+                });
+                Query phraseQuery = phraseQueryBuilder.build();
+                phraseQuery = new BoostQuery(phraseQuery, 2f);
+                ////////////////
+
+                //FINAL QUERY
                 Query query = new BooleanQuery.Builder()
-                        .add(new BoostQuery(normalQuery, 1f), BooleanClause.Occur.SHOULD)
-                        .add(new BoostQuery(typedQuery, 2f), BooleanClause.Occur.SHOULD)
+                        .add(normalQuery, BooleanClause.Occur.SHOULD)
+                        .add(typedQuery, BooleanClause.Occur.SHOULD)
+                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
                         .build();
+                /////////////
 
 
                 //submit search
