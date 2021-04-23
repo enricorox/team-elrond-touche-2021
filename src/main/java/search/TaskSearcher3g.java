@@ -351,26 +351,10 @@ public class TaskSearcher3g implements BasicSearcher {
                 //////////////////////
 
                 // 2-WORDS PHRASE QUERY
-                final var phraseQueryBuilder = new BooleanQuery.Builder();
-                final List<String[]> phraseList = new ArrayList<>();
-                AtomicReference<String> tmp = new AtomicReference<>(null);
-                Arrays.stream(escapedTopic.split(" ")).forEach(s -> {
-                    if (tmp.get() != null) {
-                        phraseList.add(new String[]{tmp.get(), s});
-                    }
-                    tmp.set(s);
-                });
-                phraseList.forEach(phrase -> {
-                    final var bodyQBuilder = new PhraseQuery.Builder();
-                    final var titleQBuilder = new PhraseQuery.Builder();
-                    for (final var t: phrase) {
-                        bodyQBuilder.add(new Term(ParsedDocument.FIELDS.BODY, t));
-                        titleQBuilder.add(new Term(ParsedDocument.FIELDS.TITLE, t));
-                    }
-                    phraseQueryBuilder.add(bodyQBuilder.build(), BooleanClause.Occur.SHOULD);
-                    phraseQueryBuilder.add(titleQBuilder.build(), BooleanClause.Occur.SHOULD);
-                });
-                Query phraseQuery = phraseQueryBuilder.build();
+                Query phraseQuery = new BooleanQuery.Builder()
+                        .add(PhraseQueryGenerator.create(ParsedDocument.FIELDS.BODY, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .add(PhraseQueryGenerator.create(ParsedDocument.FIELDS.TITLE, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .build();
 //                phraseQuery = new BoostQuery(phraseQuery, 2f);
                 ////////////////
 

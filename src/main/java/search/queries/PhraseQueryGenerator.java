@@ -1,28 +1,33 @@
 package search.queries;
 
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.PhraseQuery;
+import org.apache.lucene.search.Query;
 
-import java.io.IOException;
+import java.util.*;
 
 public class PhraseQueryGenerator {
-    public static PhraseQuery create(final String fieldName, final TokenStream stream) throws IOException {
-        final CharTermAttribute charTermAttribute = stream.getAttribute(CharTermAttribute.class);
-        final var builder = new PhraseQuery.Builder();
-
-        while (stream.incrementToken()) {
-            final var token = charTermAttribute.toString();
-            final var term = new Term(fieldName, token);
-            builder.add(term);
-        }
-
-        return builder.build();
-    }
-
-    public static PhraseQuery create(final String fieldName, final Analyzer analyzer, final String text) throws IOException {
-        return create(fieldName, analyzer.tokenStream(fieldName, text));
+    public static Query create(final String fieldName, final String queryText, final int size) {
+        final var queryBuilder = new BooleanQuery.Builder();
+        final List<String[]> phraseList = new ArrayList<>();
+        final Queue<String> tmpList = new LinkedList<>();
+        Arrays.stream(queryText.split(" ")).forEach(word -> {
+            if (tmpList.size() == size) {
+                phraseList.add(tmpList.toArray(new String[0]));
+                tmpList.remove();
+            }
+            tmpList.add(word);
+        });
+        if (tmpList.size() == size) phraseList.add(tmpList.toArray(new String[0]));
+        phraseList.forEach(phrase -> {
+            final var phraseQueryBuilder = new PhraseQuery.Builder();
+            for (final var word: phrase) {
+                phraseQueryBuilder.add(new Term(fieldName, word));
+            }
+            queryBuilder.add(phraseQueryBuilder.build(), BooleanClause.Occur.SHOULD);
+        });
+        return queryBuilder.build();
     }
 }
