@@ -58,7 +58,7 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-        final Analyzer a = new OpenNlpAnalyzer(true);
+        final Analyzer a = new OpenNlpAnalyzer();
         final Analyzer a2 = a;
 //        final Analyzer a2 = new MyAnalyzer(true);
 

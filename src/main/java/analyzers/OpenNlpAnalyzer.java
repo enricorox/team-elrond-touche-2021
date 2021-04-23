@@ -1,6 +1,7 @@
 package analyzers;
 
 import analyzers.filters.MarkTypeFilter;
+import analyzers.filters.OpenNLPNERFilter;
 import analyzers.filters.RemoveTypesFilter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
@@ -9,10 +10,7 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.miscellaneous.TypeAsSynonymFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
-import org.apache.lucene.analysis.opennlp.tools.NLPPOSTaggerOp;
-import org.apache.lucene.analysis.opennlp.tools.NLPSentenceDetectorOp;
-import org.apache.lucene.analysis.opennlp.tools.NLPTokenizerOp;
-import org.apache.lucene.analysis.opennlp.tools.OpenNLPOpsFactory;
+import org.apache.lucene.analysis.opennlp.tools.*;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
@@ -20,16 +18,32 @@ import org.apache.lucene.analysis.util.ClasspathResourceLoader;
 import org.apache.lucene.util.AttributeFactory;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenNlpAnalyzer extends Analyzer {
-    private final boolean typesToSynonyms;
-
-    public OpenNlpAnalyzer(boolean typesToSynonyms) {
-        this.typesToSynonyms = typesToSynonyms;
-    }
+    final Set<String> stopTypes = Stream.of(
+            //https://dpdearing.com/posts/2011/12/opennlp-part-of-speech-pos-tags-penn-english-treebank/
+            ".", ",", ":",
+            "IN", //Preposition or subordinating conjunction
+            "DT", //Determiner
+            "CC", //Coordinating conjunction
+            "PDT", //Predeterminer
+            "POS", //Possessive ending
+            "PRP", //Personal pronoun
+            "PRP$", //Possessive pronoun
+            "RB", "RBR", "RBS", //Adverb
+            "SYM", //Symbol
+            "RP", //Particle
+            "TO",
+            "UH", //Interjection
+            "WDT", //Whdeterminer
+            "WP", //Whpronoun
+            "WP$", //Possessive whpronoun
+            "WRB" //Whadverb
+    ).collect(Collectors.toCollection(TreeSet::new));
 
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
@@ -38,27 +52,29 @@ public class OpenNlpAnalyzer extends Analyzer {
         TokenStream stream;
 
         stream = createNLPPOSFilter(tokenizer, loader);
+        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin", '[', ']');
+        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin", '[', ']');
+        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin", '[', ']');
+        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin", '[', ']');
+        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin", '[', ']');
 
-        final var typesToRemove = Stream.of(",", ".")
-                .collect(Collectors.toCollection(TreeSet::new));
-        stream = new RemoveTypesFilter(stream, typesToRemove);
+        stream = new RemoveTypesFilter(stream, stopTypes);
         stream = new LowerCaseFilter(stream);
-        if (typesToSynonyms) {
-            stream = new MarkTypeFilter(stream, '<', '>');
-            stream = new TypeAsSynonymFilter(stream);
-        }
+        stream = new MarkTypeFilter(stream);
+        stream = new TypeAsSynonymFilter(stream);
         return new TokenStreamComponents(tokenizer, stream);
     }
 
-    //    private TokenStream createNLPNERFilter(TokenStream stream, ClasspathResourceLoader loader, String name) {
-//        try {
-//            final var nerMd = OpenNLPOpsFactory.getNERTaggerModel("opennlp/" + name, loader);
-//            final var tag = new NLPNERTaggerOp(nerMd);
-//            return new OpenNLP
-//        } catch (IOException e) {
-//            throw new IllegalStateException(e);
-//        }
-//    }
+    private TokenStream createNLPNERFilter(TokenStream stream, ClasspathResourceLoader loader, String name, char start, char end) {
+        try {
+            final var nerMd = OpenNLPOpsFactory.getNERTaggerModel("opennlp/" + name, loader);
+            final var tag = new NLPNERTaggerOp(nerMd);
+//            return new OpenNlpNerAsSynonymFilter(stream, tag, start, end);
+            return new OpenNLPNERFilter(stream, tag);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     private TokenStream createNLPPOSFilter(Tokenizer tokenizer, ClasspathResourceLoader loader) {
         try {
@@ -84,10 +100,11 @@ public class OpenNlpAnalyzer extends Analyzer {
     }
 
     public static void main(String[] args) throws IOException {
-        final var analyzer = new OpenNlpAnalyzer(true);
+        final var analyzer = new OpenNlpAnalyzer();
 //        final var testText = "The cat! It's on the table!";
-//        final var testText = "cat";
-        final var testText = "My city is beautiful, but Rome is probably better! ???";
+//        final var testText = "My city is beautiful, but Rome is probably better! ???";
+//        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
+        final var testText = "Should felons who have completed their sentence be allowed to vote?";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);
@@ -98,9 +115,15 @@ public class OpenNlpAnalyzer extends Analyzer {
             final var type = typeAttribute.type();
             final var pos = (posAtt!=null)?posAtt.getPositionIncrement():1;
             if (pos > 0)
-                System.out.printf("Token: %s --> %s%n", token, type);
+                if (type != null)
+                    System.out.printf("Token: %s -> %s%n", token, type);
+                else
+                    System.out.printf("Token: %s%n", token);
             else
-                System.out.printf("       %s --> %s%n", token, type);
+                if (type != null)
+                    System.out.printf("       %s -> %s%n", token, type);
+                else
+                    System.out.printf("       %s%n", token);
         }
     }
 
