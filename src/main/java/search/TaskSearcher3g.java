@@ -16,6 +16,7 @@
 
 package search;
 
+import analyzers.filters.SeparateTokenTypesFilter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
@@ -104,6 +105,10 @@ public class TaskSearcher3g implements BasicSearcher {
 
     private final QueryParser titleQueryParser;
 
+    private final QueryParser typedBodyQueryParser;
+
+    private final QueryParser typedTitleQueryParser;
+
     /**
      * The maximum number of documents to retrieve
      */
@@ -115,6 +120,7 @@ public class TaskSearcher3g implements BasicSearcher {
     private long elapsedTime = Long.MIN_VALUE;
 
     private final Analyzer analyzer;
+    private final Analyzer analyzer2;
 
     private final int numThreads;
     private final double threadsQueueFactor;
@@ -134,7 +140,7 @@ public class TaskSearcher3g implements BasicSearcher {
      * @throws NullPointerException     if any of the parameters is {@code null}.
      * @throws IllegalArgumentException if any of the parameters assumes invalid values.
      */
-    public TaskSearcher3g(final Analyzer analyzer, final Similarity similarity, final String indexPath,
+    public TaskSearcher3g(final Analyzer analyzer, final Analyzer analyzer2, final Similarity similarity, final String indexPath,
                           final String topicsFile, final int expectedTopics, final String runID, final String runPath,
                           final int maxDocsRetrieved, int numThreads, double threadsQueueFactor) {
 
@@ -142,6 +148,11 @@ public class TaskSearcher3g implements BasicSearcher {
             throw new NullPointerException("Analyzer cannot be null.");
         }
         this.analyzer = analyzer;
+
+        if (analyzer2 == null) {
+            throw new NullPointerException("Analyzer (2) cannot be null.");
+        }
+        this.analyzer2 = analyzer2;
 
         if (similarity == null) {
             throw new NullPointerException("Similarity cannot be null.");
@@ -212,6 +223,8 @@ public class TaskSearcher3g implements BasicSearcher {
 
         bodyQueryParser = new QueryParser(ParsedDocument.FIELDS.BODY, analyzer);
         titleQueryParser = new QueryParser(ParsedDocument.FIELDS.TITLE, analyzer);
+        typedBodyQueryParser = new QueryParser(ParsedDocument.FIELDS.BODY, analyzer2);
+        typedTitleQueryParser = new QueryParser(ParsedDocument.FIELDS.TITLE, analyzer2);
 
         if (runID == null) {
             throw new NullPointerException("Run identifier cannot be null.");
@@ -303,18 +316,35 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
 
-                //create query
+                final var escapedTopic = QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE));
 
-                Query bodyQuery = bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
+                //create query
+                Query bodyQuery = bodyQueryParser.parse(escapedTopic);
                 bodyQuery = new BoostQuery(bodyQuery, 1f);
 
-                Query titleQuery = titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
+                Query titleQuery = titleQueryParser.parse(escapedTopic);
                 titleQuery = new BoostQuery(titleQuery, 2f);
 
-                Query query = new BooleanQuery.Builder()
+                Query normalQuery = new BooleanQuery.Builder()
                     .add(bodyQuery, BooleanClause.Occur.SHOULD)
                     .add(titleQuery, BooleanClause.Occur.SHOULD)
                     .build();
+
+                Query typedBodyQuery = typedBodyQueryParser.parse(escapedTopic);
+                typedBodyQuery = new BoostQuery(typedBodyQuery, 1f);
+
+                Query typedTitleQuery = typedTitleQueryParser.parse(escapedTopic);
+                typedTitleQuery = new BoostQuery(typedTitleQuery, 2f);
+
+                Query typedQuery = new BooleanQuery.Builder()
+                        .add(typedBodyQuery, BooleanClause.Occur.SHOULD)
+                        .add(typedTitleQuery, BooleanClause.Occur.SHOULD)
+                        .build();
+
+                Query query = new BooleanQuery.Builder()
+                        .add(new BoostQuery(normalQuery, 1f), BooleanClause.Occur.SHOULD)
+                        .add(new BoostQuery(typedQuery, 2f), BooleanClause.Occur.SHOULD)
+                        .build();
 
 
                 //submit search

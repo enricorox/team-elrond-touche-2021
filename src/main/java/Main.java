@@ -1,14 +1,6 @@
-import analyzers.MyAnalyzer;
 import analyzers.OpenNlpAnalyzer;
-import index.DirectoryIndexer;
 import index.DirectoryIndexerMT;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.StopFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
-import org.apache.lucene.analysis.en.PorterStemFilterFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.DocumentParser;
@@ -21,7 +13,6 @@ import utils.Props;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -58,8 +49,9 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-        final Analyzer a = new OpenNlpAnalyzer();
-        final Analyzer a2 = a;
+        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
+        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
+        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
 //        final Analyzer a2 = new MyAnalyzer(true);
 
         final int numThreads = 12;
@@ -85,7 +77,7 @@ public class Main {
             System.out.printf("Start indexing with '%s'...\n", parserName);
 //            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
 //                    expectedDocs, parser);
-            final DirectoryIndexerMT i = new DirectoryIndexerMT(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
+            final DirectoryIndexerMT i = new DirectoryIndexerMT(indexAnalyzer, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser, numThreads, threadsFact);
             try {
                 i.index();
@@ -99,9 +91,9 @@ public class Main {
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
-                    case "taskSearcher1" -> new TaskSearcher1(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher2g" -> new TaskSearcher2g(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher3g" -> new TaskSearcher3g(a2, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
+                    case "taskSearcher1" -> new TaskSearcher1(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher2g" -> new TaskSearcher2g(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher3g" -> new TaskSearcher3g(queryAnalyzer, typedQueryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");

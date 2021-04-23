@@ -5,7 +5,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
-import org.apache.lucene.analysis.miscellaneous.TypeAsSynonymFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
 import org.apache.lucene.analysis.opennlp.tools.*;
@@ -22,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OpenNlpAnalyzer extends Analyzer {
+    private final FilterStrategy filterStrategy;
     final Set<String> stopTypes = Stream.of(
             //https://dpdearing.com/posts/2011/12/opennlp-part-of-speech-pos-tags-penn-english-treebank/
             ".", ",", ":",
@@ -43,6 +43,14 @@ public class OpenNlpAnalyzer extends Analyzer {
             "WRB" //Whadverb
     ).collect(Collectors.toCollection(TreeSet::new));
 
+    public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
+        this.filterStrategy = filterStrategy;
+    }
+
+    public OpenNlpAnalyzer() {
+        this(FilterStrategy.NONE);
+    }
+
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         final var loader = new ClasspathResourceLoader(ClassLoader.getSystemClassLoader());
@@ -60,6 +68,12 @@ public class OpenNlpAnalyzer extends Analyzer {
         stream = new LowerCaseFilter(stream);
         stream = new TypeConcatenateSynonymFilter(stream);
 //        stream = new TypeAsSynonymFilter(stream);
+
+        stream = switch (filterStrategy) {
+            case ORIGINAL_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.ORIGINAL);
+            case TYPED_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.TYPE_C_TOKEN);
+            case NONE -> stream;
+        };
 
         return new TokenStreamComponents(tokenizer, stream);
     }
@@ -95,6 +109,10 @@ public class OpenNlpAnalyzer extends Analyzer {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+    
+    public enum FilterStrategy {
+        NONE, ORIGINAL_ONLY, TYPED_ONLY
     }
 
     public static void main(String[] args) throws IOException {
