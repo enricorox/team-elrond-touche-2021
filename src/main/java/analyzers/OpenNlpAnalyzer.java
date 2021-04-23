@@ -1,10 +1,8 @@
 package analyzers;
 
 import analyzers.filters.*;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LowerCaseFilter;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
@@ -14,10 +12,11 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.apache.lucene.analysis.util.ClasspathResourceLoader;
 import org.apache.lucene.util.AttributeFactory;
+import utils.StopWords;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +24,7 @@ public class OpenNlpAnalyzer extends Analyzer {
     private final FilterStrategy filterStrategy;
     final Set<String> stopTypes = Stream.of(
             //https://dpdearing.com/posts/2011/12/opennlp-part-of-speech-pos-tags-penn-english-treebank/
-            ".", ",", ":",
+            ".", ",", ":", "\"", "(", ")", "<", ">", "``", "''", "-LRB-", "-RRB-", "-RSB-", "-RSB-", "-LCB-", "-RCB-",
             "IN", //Preposition or subordinating conjunction
             "DT", //Determiner
             "CC", //Coordinating conjunction
@@ -42,7 +41,7 @@ public class OpenNlpAnalyzer extends Analyzer {
             "WP", //Whpronoun
             "WP$", //Possessive whpronoun
             "WRB" //Whadverb
-    ).collect(Collectors.toCollection(TreeSet::new));
+    ).collect(Collectors.toCollection(HashSet::new));
 
     public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
         this.filterStrategy = filterStrategy;
@@ -62,21 +61,23 @@ public class OpenNlpAnalyzer extends Analyzer {
 //        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
 //        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
         stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
         stream = new RemoveTypesFilter(stream, stopTypes);
         stream = new LowerCaseFilter(stream);
+        stream = new StringReplaceFilter(stream, "'s", "is");
+        stream = new StringReplaceFilter(stream, "'m", "am");
+        stream = new StringReplaceFilter(stream, "'re", "are");
+        stream = new StopFilter(stream, StopWords.loadStopWords("99webtools.txt"));
+        stream = new PorterStemFilter(stream);
         stream = new TypeConcatenateSynonymFilter(stream);
-//        stream = new TypeAsSynonymFilter(stream);
 
         stream = switch (filterStrategy) {
             case ORIGINAL_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.ORIGINAL);
             case TYPED_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.TYPE_C_TOKEN);
             case NONE -> stream;
         };
-
-        stream = new PorterStemFilter(stream);
 
         return new TokenStreamComponents(tokenizer, stream);
     }
@@ -123,7 +124,8 @@ public class OpenNlpAnalyzer extends Analyzer {
 //        final var testText = "The cat! It's on the table!";
 //        final var testText = "My city is beautiful, but Rome is probably better! ???";
 //        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
-        final var testText = "Should felons who have completed their sentence be allowed to vote?";
+//        final var testText = "Should felons who have completed their sentence be allowed to vote?";
+        final var testText = "it's still less money \" '";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);

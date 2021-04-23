@@ -324,10 +324,10 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 // NORMAL QUERY
                 Query bodyQuery = bodyQueryParser.parse(escapedTopic);
-                bodyQuery = new BoostQuery(bodyQuery, 2f);
+//                bodyQuery = new BoostQuery(bodyQuery, 2f);
 
                 Query titleQuery = titleQueryParser.parse(escapedTopic);
-                titleQuery = new BoostQuery(titleQuery, 1f);
+//                titleQuery = new BoostQuery(titleQuery, 1f);
 
                 Query normalQuery = new BooleanQuery.Builder()
                     .add(bodyQuery, BooleanClause.Occur.SHOULD)
@@ -338,19 +338,19 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 // TYPED QUERY
                 Query typedBodyQuery = typedBodyQueryParser.parse(escapedTopic);
-                typedBodyQuery = new BoostQuery(typedBodyQuery, 2f);
+//                typedBodyQuery = new BoostQuery(typedBodyQuery, 2f);
 
                 Query typedTitleQuery = typedTitleQueryParser.parse(escapedTopic);
-                typedTitleQuery = new BoostQuery(typedTitleQuery, 1f);
+//                typedTitleQuery = new BoostQuery(typedTitleQuery, 1f);
 
                 Query typedQuery = new BooleanQuery.Builder()
                         .add(typedBodyQuery, BooleanClause.Occur.SHOULD)
                         .add(typedTitleQuery, BooleanClause.Occur.SHOULD)
                         .build();
-                typedQuery = new BoostQuery(typedQuery, 2f);
+//                typedQuery = new BoostQuery(typedQuery, 1.4f);
                 //////////////////////
 
-                //PHRASE QUERY
+                // 2-WORDS PHRASE QUERY
                 final var phraseQueryBuilder = new BooleanQuery.Builder();
                 final List<String[]> phraseList = new ArrayList<>();
                 AtomicReference<String> tmp = new AtomicReference<>(null);
@@ -371,7 +371,7 @@ public class TaskSearcher3g implements BasicSearcher {
                     phraseQueryBuilder.add(titleQBuilder.build(), BooleanClause.Occur.SHOULD);
                 });
                 Query phraseQuery = phraseQueryBuilder.build();
-                phraseQuery = new BoostQuery(phraseQuery, 2f);
+//                phraseQuery = new BoostQuery(phraseQuery, 2f);
                 ////////////////
 
                 //FINAL QUERY
