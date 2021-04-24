@@ -35,10 +35,7 @@ public class SeparateTokenTypesFilter extends TokenFilter {
             if (!input.incrementToken()) return false;
             token = charTermAttribute.toString();
             isTypeToken = token.charAt(0) == '<';
-            isToKeep = switch (keep) {
-                case ORIGINAL -> !isTypeToken;
-                case TYPE_C_TOKEN -> isTypeToken;
-            };
+            isToKeep = keep.isToKeep(isTypeToken);
         } while (!isToKeep);
         if (isTypeToken)
             positionIncrementAttribute.setPositionIncrement(1);
@@ -46,7 +43,10 @@ public class SeparateTokenTypesFilter extends TokenFilter {
     }
 
     public enum Keep {
-        ORIGINAL, TYPE_C_TOKEN
+        ORIGINAL {@Override protected boolean isToKeep(boolean isTypeToken) {return !isTypeToken;}},
+        TYPE_C_TOKEN{@Override protected boolean isToKeep(boolean isTypeToken) {return isTypeToken;}};
+
+        protected abstract boolean isToKeep(boolean isTypeToken);
     }
 
     public static void main(String[] args) throws IOException {

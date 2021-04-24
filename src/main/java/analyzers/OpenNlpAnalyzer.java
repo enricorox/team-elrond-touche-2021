@@ -73,11 +73,7 @@ public class OpenNlpAnalyzer extends Analyzer {
         stream = new PorterStemFilter(stream);
         stream = new TypeConcatenateSynonymFilter(stream);
 
-        stream = switch (filterStrategy) {
-            case ORIGINAL_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.ORIGINAL);
-            case TYPED_ONLY -> new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.TYPE_C_TOKEN);
-            case NONE -> stream;
-        };
+        stream = filterStrategy.filterStream(stream);
 
         return new TokenStreamComponents(tokenizer, stream);
     }
@@ -116,7 +112,26 @@ public class OpenNlpAnalyzer extends Analyzer {
     }
     
     public enum FilterStrategy {
-        NONE, ORIGINAL_ONLY, TYPED_ONLY
+        NONE {
+            @Override
+            protected TokenStream filterStream(TokenStream stream) {
+                return stream;
+            }
+        },
+        ORIGINAL_ONLY {
+            @Override
+            protected TokenStream filterStream(TokenStream stream) {
+                return new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.ORIGINAL);
+            }
+        },
+        TYPED_ONLY {
+            @Override
+            protected TokenStream filterStream(TokenStream stream) {
+                return new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.TYPE_C_TOKEN);
+            }
+        };
+
+        protected abstract TokenStream filterStream(TokenStream stream);
     }
 
     public static void main(String[] args) throws IOException {
@@ -124,8 +139,8 @@ public class OpenNlpAnalyzer extends Analyzer {
 //        final var testText = "The cat! It's on the table!";
 //        final var testText = "My city is beautiful, but Rome is probably better! ???";
 //        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
-//        final var testText = "Should felons who have completed their sentence be allowed to vote?";
-        final var testText = "it's still less money \" '";
+        final var testText = "Should felons who have completed their sentence be allowed to vote?";
+//        final var testText = "it's still less money \" '";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);
