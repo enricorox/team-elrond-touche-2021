@@ -2,6 +2,8 @@ package analyzers;
 
 import analyzers.filters.*;
 import org.apache.lucene.analysis.*;
+import org.apache.lucene.analysis.core.StopFilterFactory;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
@@ -26,7 +28,7 @@ public class OpenNlpAnalyzer extends Analyzer {
             //https://dpdearing.com/posts/2011/12/opennlp-part-of-speech-pos-tags-penn-english-treebank/
             ".", ",", ":", "\"", "(", ")", "<", ">", "``", "''", "-LRB-", "-RRB-", "-RSB-", "-RSB-", "-LCB-", "-RCB-",
             "IN", //Preposition or subordinating conjunction
-            "DT", //Determiner
+//            "DT", //Determiner
             "CC", //Coordinating conjunction
             "PDT", //Predeterminer
             "POS", //Possessive ending
@@ -40,7 +42,9 @@ public class OpenNlpAnalyzer extends Analyzer {
             "WDT", //Whdeterminer
             "WP", //Whpronoun
             "WP$", //Possessive whpronoun
-            "WRB" //Whadverb
+            "WRB", //Whadverb
+            "CD", //Cardinal number
+            "date", "time"
     ).collect(Collectors.toCollection(HashSet::new));
 
     public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
@@ -60,11 +64,12 @@ public class OpenNlpAnalyzer extends Analyzer {
         stream = createNLPPOSFilter(tokenizer, loader);
 //        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
 //        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+//        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
         stream = new RemoveTypesFilter(stream, stopTypes);
+        stream = new BreakHyphensFilter(stream);
         stream = new LowerCaseFilter(stream);
         stream = new StringReplaceFilter(stream, "'s", "is");
         stream = new StringReplaceFilter(stream, "'m", "am");
@@ -91,6 +96,7 @@ public class OpenNlpAnalyzer extends Analyzer {
     private TokenStream createNLPPOSFilter(Tokenizer tokenizer, ClasspathResourceLoader loader) {
         try {
             final var posMd = OpenNLPOpsFactory.getPOSTaggerModel("opennlp/en-pos-maxent.bin", loader);
+//            final var posMd = OpenNLPOpsFactory.getPOSTaggerModel("opennlp/en-pos-perceptron.bin", loader);
             final var tagOp = new NLPPOSTaggerOp(posMd);
             return new OpenNLPPOSFilter(tokenizer, tagOp);
         } catch (IOException e) {
@@ -139,8 +145,8 @@ public class OpenNlpAnalyzer extends Analyzer {
 //        final var testText = "The cat! It's on the table!";
 //        final var testText = "My city is beautiful, but Rome is probably better! ???";
 //        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
-        final var testText = "Should felons who have completed their sentence be allowed to vote?";
-//        final var testText = "it's still less money \" '";
+//        final var testText = "Should felons who have completed their sentence be allowed to vote?";
+        final var testText = "Should performance-enhancing drugs be accepted in sports?";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);
