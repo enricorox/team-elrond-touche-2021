@@ -24,7 +24,6 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.benchmark.quality.QualityQuery;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
@@ -48,7 +47,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Searches a document collection.
@@ -443,16 +441,20 @@ public class TaskSearcher3g implements BasicSearcher {
         public String[] resultString(final IndexReader reader, final Set<String> idField, final String runID) {
             try {
                 final var scoreDocs = docs.scoreDocs;
-                final var ret = new String[scoreDocs.length];
+                final var ret = new ArrayList<String>();
+
+                final var threshold = 0.5f * scoreDocs[0].score;
 
                 for (int i = 0, n = scoreDocs.length; i < n; i++) {
-                    var docID = reader.document(scoreDocs[i].doc, idField).get(ParsedDocument.FIELDS.ID);
+                    final var score = scoreDocs[i].score;
+//                    if (score < threshold) continue;
+                    final var docID = reader.document(scoreDocs[i].doc, idField).get(ParsedDocument.FIELDS.ID);
 
-                    final var s = String.format(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", queryId, docID, i, scoreDocs[i].score,
+                    final var s = String.format(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", queryId, docID, i, score,
                             runID);
-                    ret[i] = s;
+                    ret.add(s);
                 }
-                return ret;
+                return ret.toArray(new String[0]);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
