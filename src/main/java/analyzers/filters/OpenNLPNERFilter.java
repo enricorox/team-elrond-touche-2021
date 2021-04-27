@@ -201,7 +201,7 @@ public final class OpenNLPNERFilter extends TokenFilter {
 				as.addAttribute(PositionLengthAttribute.class).setPositionLength(spannedPositions);
 				as.addAttribute(OffsetAttribute.class).setOffset(startOffset, endOffset);
 				as.addAttribute(TypeAttribute.class).setType(entityType);
-//				as.addAttribute(KeywordAttribute.class).setKeyword(true);
+				as.addAttribute(KeywordAttribute.class).setKeyword(true);
 				as.addAttribute(FlagsAttribute.class).setFlags(flags);
 
 				sentenceTokens.add(as);

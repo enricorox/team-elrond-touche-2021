@@ -10,6 +10,7 @@ import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
 import org.apache.lucene.analysis.opennlp.tools.*;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.KeywordAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.apache.lucene.analysis.util.ClasspathResourceLoader;
@@ -144,28 +145,30 @@ public class OpenNlpAnalyzer extends Analyzer {
         final var analyzer = new OpenNlpAnalyzer();
 //        final var testText = "The cat! It's on the table!";
 //        final var testText = "My city is beautiful, but Rome is probably better! ???";
-//        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
+        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
 //        final var testText = "Should felons who have completed their sentence be allowed to vote?";
-        final var testText = "Should performance-enhancing drugs be accepted in sports?";
+//        final var testText = "Should performance-enhancing drugs be accepted in sports?";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);
         TypeAttribute typeAttribute = stream.addAttribute(TypeAttribute.class);
+        KeywordAttribute keywordAttribute = stream.addAttribute(KeywordAttribute.class);
         stream.reset();
         while (stream.incrementToken()) {
             final var token = att.toString();
             final var type = typeAttribute.type();
             final var pos = (posAtt!=null)?posAtt.getPositionIncrement():1;
+            final var isKeyword = keywordAttribute.isKeyword();
             if (pos > 0)
                 if (type != null)
-                    System.out.printf("Token: %s -> %s%n", token, type);
+                    System.out.printf("Token: %s -> %s%s%n", token, type, isKeyword?" [k]":"");
                 else
-                    System.out.printf("Token: %s%n", token);
+                    System.out.printf("Token: %s%s%n", token, isKeyword?" [k]":"");
             else
                 if (type != null)
-                    System.out.printf("       %s -> %s%n", token, type);
+                    System.out.printf("       %s -> %s%s%n", token, type, isKeyword?" [k]":"");
                 else
-                    System.out.printf("       %s%n", token);
+                    System.out.printf("       %s%s%n", token, isKeyword?" [k]":"");
         }
     }
 
