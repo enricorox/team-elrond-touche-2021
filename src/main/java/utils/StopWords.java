@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 
 public class StopWords {
     public static CharArraySet loadStopWords(String name) {
-        final var globalSet = new CharArraySet(100, true);
         try {
             final var res = StopWords.class.getResourceAsStream("../"+name);
             if (res == null) throw new IllegalArgumentException("Resource %s not found".formatted(name));
