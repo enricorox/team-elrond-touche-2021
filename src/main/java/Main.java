@@ -11,6 +11,8 @@ import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
+import Analizer.HelloOpenNlpAnalyzer;
+import Analizer.HelloAnalyzer;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,13 +46,16 @@ public class Main {
     /*    final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
                 LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
 */
-       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
+       /*final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
-//               .addTokenFilter(StopFilterFactory.class,
-//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+              .addTokenFilter(StopFilterFactory.class,
+                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
                .addTokenFilter(PorterStemFilterFactory.class)
-               .build();
+               .build();*/
+        //final Analyzer a= new HelloOpenNlpAnalyzer();
+
+        final Analyzer a= new HelloAnalyzer();
 
         final Similarity similarity = new BM25Similarity();
 

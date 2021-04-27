@@ -274,7 +274,7 @@ public class DirectoryIndexer {
                     for (ParsedDocument pd : dp) {
 
                         if (idSet.contains(pd.getIdentifier())) {
-                            System.err.printf("Skipped duplicate document %s%n", pd.getIdentifier());
+                            //System.err.printf("Skipped duplicate document %s%n", pd.getIdentifier());
                             continue;
                         } else idSet.add(pd.getIdentifier());
 
