@@ -5,8 +5,7 @@ import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
-import org.apache.lucene.search.similarities.BM25Similarity;
-import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.search.similarities.*;
 import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
@@ -47,12 +46,16 @@ public class Main {
        final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
-//               .addTokenFilter(StopFilterFactory.class,
-//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+               .addTokenFilter(StopFilterFactory.class,
+                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
                .addTokenFilter(PorterStemFilterFactory.class)
                .build();
 
-        final Similarity similarity = new BM25Similarity();
+        //final Similarity similarity = new BM25Similarity();
+        //final Similarity similarity=new ClassicSimilarity();
+        final Similarity similarity=new LMDirichletSimilarity(1800);
+        //final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
+        //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
         final String runPath = props.getProperty("work_folder");
 
