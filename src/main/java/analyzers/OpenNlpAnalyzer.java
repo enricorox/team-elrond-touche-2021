@@ -63,11 +63,12 @@ public class OpenNlpAnalyzer extends Analyzer {
         TokenStream stream;
 
             stream = createNLPPOSFilter(tokenizer, loader);
-    //        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
-    //        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
-    //        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-    //        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-    //        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-percentage.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+//            stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
             stream = new RemoveTypesFilter(stream, stopTypes);
             stream = new BreakHyphensFilter(stream);

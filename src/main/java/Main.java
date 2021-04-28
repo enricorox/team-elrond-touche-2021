@@ -2,6 +2,7 @@ import analyzers.OpenNlpAnalyzer;
 import index.DirectoryIndexerMT;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.LMDirichletSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.DocumentParser;
 import parse.Task1Parser;
@@ -57,7 +58,8 @@ public class Main {
         final int numThreads = 12;
         final double threadsFact = 3;
 
-        final Similarity similarity = new BM25Similarity();
+//        final Similarity similarity = new BM25Similarity();
+        final Similarity similarity = new LMDirichletSimilarity();
 
         final String runPath = props.getProperty("work_folder");
 

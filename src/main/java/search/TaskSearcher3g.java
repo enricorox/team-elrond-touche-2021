@@ -350,8 +350,8 @@ public class TaskSearcher3g implements BasicSearcher {
 
                 // 2-WORDS PHRASE QUERY
                 Query phraseQuery = new BooleanQuery.Builder()
-                        .add(PhraseQueryGenerator.create(ParsedDocument.FIELDS.BODY, escapedTopic, 2), BooleanClause.Occur.SHOULD)
-                        .add(PhraseQueryGenerator.create(ParsedDocument.FIELDS.TITLE, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.BODY, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.TITLE, escapedTopic, 2), BooleanClause.Occur.SHOULD)
                         .build();
 //                phraseQuery = new BoostQuery(phraseQuery, 2f);
                 ////////////////
