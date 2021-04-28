@@ -49,20 +49,20 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-//        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
-//        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
-//        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
+        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
+        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
+        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
 
-        final Analyzer indexAnalyzer = new MyAnalyzer();
-        final Analyzer queryAnalyzer = indexAnalyzer;
-        final Analyzer typedQueryAnalyzer = indexAnalyzer;
+//        final Analyzer indexAnalyzer = new MyAnalyzer();
+//        final Analyzer queryAnalyzer = indexAnalyzer;
+//        final Analyzer typedQueryAnalyzer = indexAnalyzer;
 //        final Analyzer a2 = new MyAnalyzer(true);
 
         final int numThreads = 12;
         final double threadsFact = 3;
 
-//        final Similarity similarity = new BM25Similarity();
-        final Similarity similarity = new LMDirichletSimilarity();
+        final Similarity similarity = new BM25Similarity();
+//        final Similarity similarity = new LMDirichletSimilarity();
 //        final Similarity similarity = new DFISimilarity(new IndependenceStandardized());
 
         final String runPath = props.getProperty("work_folder");
@@ -85,14 +85,14 @@ public class Main {
 //                    expectedDocs, parser);
             final DirectoryIndexerMT i = new DirectoryIndexerMT(indexAnalyzer, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser, numThreads, threadsFact);
-//            try {
-//                i.index();
-//                System.out.println("Indexing succeeded");
-//            } catch (IOException e) {
-//                System.out.println("Indexing failed");
-//                e.printStackTrace();
-//                return;
-//            }
+            try {
+                i.index();
+                System.out.println("Indexing succeeded");
+            } catch (IOException e) {
+                System.out.println("Indexing failed");
+                e.printStackTrace();
+                return;
+            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
