@@ -443,7 +443,7 @@ public class TaskSearcher3g implements BasicSearcher {
                 final var scoreDocs = docs.scoreDocs;
                 final var ret = new ArrayList<String>();
 
-                final var threshold = 0.5f * scoreDocs[0].score;
+//                final var threshold = 0.5f * scoreDocs[0].score;
 
                 for (int i = 0, n = scoreDocs.length; i < n; i++) {
                     final var score = scoreDocs[i].score;

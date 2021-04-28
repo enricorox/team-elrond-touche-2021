@@ -2,9 +2,6 @@ package analyzers;
 
 import analyzers.filters.*;
 import org.apache.lucene.analysis.*;
-import org.apache.lucene.analysis.core.StopFilterFactory;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPPOSFilter;
 import org.apache.lucene.analysis.opennlp.OpenNLPTokenizer;
@@ -48,8 +45,11 @@ public class OpenNlpAnalyzer extends Analyzer {
             "date", "time"
     ).collect(Collectors.toCollection(HashSet::new));
 
+    private final CharArraySet stopWords;
+
     public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
         this.filterStrategy = filterStrategy;
+        stopWords = StopWords.loadStopWords("99webtools.txt");
     }
 
     public OpenNlpAnalyzer() {
@@ -62,22 +62,22 @@ public class OpenNlpAnalyzer extends Analyzer {
         final Tokenizer tokenizer = createTokenizer(loader);
         TokenStream stream;
 
-        stream = createNLPPOSFilter(tokenizer, loader);
-//        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-//        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
+            stream = createNLPPOSFilter(tokenizer, loader);
+    //        stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
+    //        stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
+    //        stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
+    //        stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
+    //        stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
-        stream = new RemoveTypesFilter(stream, stopTypes);
-        stream = new BreakHyphensFilter(stream);
-        stream = new LowerCaseFilter(stream);
-        stream = new StringReplaceFilter(stream, "'s", "is");
-        stream = new StringReplaceFilter(stream, "'m", "am");
-        stream = new StringReplaceFilter(stream, "'re", "are");
-        stream = new StopFilter(stream, StopWords.loadStopWords("99webtools.txt"));
-        stream = new PorterStemFilter(stream);
-        stream = new TypeConcatenateSynonymFilter(stream);
+            stream = new RemoveTypesFilter(stream, stopTypes);
+            stream = new BreakHyphensFilter(stream);
+            stream = new LowerCaseFilter(stream);
+            stream = new StringReplaceFilter(stream, "'s", "is");
+            stream = new StringReplaceFilter(stream, "'m", "am");
+            stream = new StringReplaceFilter(stream, "'re", "are");
+            stream = new StopFilter(stream, stopWords);
+            stream = new PorterStemFilter(stream);
+            stream = new TypeConcatenateSynonymFilter(stream);
 
         stream = filterStrategy.filterStream(stream);
 
