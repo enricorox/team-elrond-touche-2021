@@ -49,7 +49,7 @@ public class OpenNlpAnalyzer extends Analyzer {
 
     public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
         this.filterStrategy = filterStrategy;
-        stopWords = StopWords.loadStopWords("99webtools.txt");
+        stopWords = CharArraySet.unmodifiableSet(StopWords.loadStopWords("99webtools.txt"));
     }
 
     public OpenNlpAnalyzer() {
