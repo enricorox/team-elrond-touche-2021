@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class CustomSynonymsFilter extends TokenFilter {
-    private final Map<String, Set<String>> synonymMap = new HashMap<>();
+    private final Map<String, Set<String>> synonymMap;
     private final CharTermAttribute charTermAttribute;
     private final PositionIncrementAttribute positionIncrementAttribute;
     private final Queue<String> remainingSynonyms = new ArrayDeque<>();
@@ -30,7 +30,17 @@ public class CustomSynonymsFilter extends TokenFilter {
         super(input);
         this.charTermAttribute = addAttribute(CharTermAttribute.class);
         this.positionIncrementAttribute = addAttribute(PositionIncrementAttribute.class);
+        synonymMap = new HashMap<>();
         loadSynonymMap();
+    }
+
+    public CustomSynonymsFilter(TokenStream input, Map<String, Set<String>> synonymMap) {
+        super(input);
+        this.charTermAttribute = addAttribute(CharTermAttribute.class);
+        this.positionIncrementAttribute = addAttribute(PositionIncrementAttribute.class);
+        this.synonymMap = synonymMap;
+        if (synonymMap.size() == 0)
+            loadSynonymMap();
     }
 
     @Override

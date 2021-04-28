@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.*;
 
 public class AddCategoryFilter extends TokenFilter {
-    private final Map<String, String> categoryMap = new HashMap<>();
+    private final Map<String, String> categoryMap;
     private String lastCategory = null;
 
     private final CharTermAttribute charTermAttribute;
@@ -19,7 +19,17 @@ public class AddCategoryFilter extends TokenFilter {
         super(stream);
         charTermAttribute = addAttribute(CharTermAttribute.class);
         positionIncrementAttribute = addAttribute(PositionIncrementAttribute.class);
+        this.categoryMap = new HashMap<>();
         loadCategories();
+    }
+
+    public AddCategoryFilter(TokenStream stream, Map<String, String> categoryMap) {
+        super(stream);
+        charTermAttribute = addAttribute(CharTermAttribute.class);
+        positionIncrementAttribute = addAttribute(PositionIncrementAttribute.class);
+        this.categoryMap = categoryMap;
+        if (categoryMap.size() == 0)
+            loadCategories();
     }
 
     @Override
@@ -66,6 +76,6 @@ public class AddCategoryFilter extends TokenFilter {
                 throw new IllegalStateException(e);
             }
         }
-        System.err.printf("Loaded %d categorized words%n", categoryMap.size());
+//        System.err.printf("Loaded %d categorized words%n", categoryMap.size());
     }
 }

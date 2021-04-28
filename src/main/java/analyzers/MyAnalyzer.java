@@ -1,6 +1,7 @@
 package analyzers;
 
 import analyzers.filters.AddCategoryFilter;
+import analyzers.filters.BreakHyphensFilter;
 import analyzers.filters.CustomSynonymsFilter;
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
@@ -12,30 +13,39 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import utils.StopWords;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
 public class MyAnalyzer extends Analyzer {
-    private final boolean includeSynonyms;
-    private final boolean includeCategories;
+    private final ExpansionStrategy expansionStrategy;
+    private final CharArraySet stopWords;
 
-    public MyAnalyzer(boolean includeSynonyms, boolean includeCategories) {
-        this.includeSynonyms = includeSynonyms;
-        this.includeCategories = includeCategories;
+    private static final Map<String, Set<String>> synonymsMap = new HashMap<>(); //caching reason
+    private static final Map<String, String> categoryMap = new HashMap<>(); //caching reason
+
+    public MyAnalyzer() {
+        this(ExpansionStrategy.NONE);
+    }
+    public MyAnalyzer(final ExpansionStrategy expansionStrategy) {
+        this.expansionStrategy = expansionStrategy;
+        stopWords = CharArraySet.unmodifiableSet(StopWords.loadStopWords("99webtools.txt"));
     }
 
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         final Tokenizer tokenizer = new StandardTokenizer();
 
-        TokenStream tokenStream = normalize(fieldName, tokenizer);
-        tokenStream = new EnglishPossessiveFilter(tokenStream);
-        if (includeSynonyms) tokenStream = new CustomSynonymsFilter(tokenStream);
-        tokenStream = new EnglishMinimalStemFilter(tokenStream);
-        tokenStream = new StopFilter(tokenStream, StopWords.loadStopWords("99webtools.txt"));
-        if (includeCategories) tokenStream = new AddCategoryFilter(tokenStream);
-        tokenStream = new PorterStemFilter(tokenStream);
+        TokenStream stream = normalize(fieldName, tokenizer);
+//        stream = new BreakHyphensFilter(stream);
+        stream = new EnglishPossessiveFilter(stream);
+        stream = new EnglishMinimalStemFilter(stream);
+        stream = new StopFilter(stream, stopWords);
+        stream = expansionStrategy.expand(stream);
+        stream = new PorterStemFilter(stream);
 
-        return new TokenStreamComponents(tokenizer, tokenStream);
+        return new TokenStreamComponents(tokenizer, stream);
     }
 
     @Override
@@ -43,9 +53,32 @@ public class MyAnalyzer extends Analyzer {
         return new LowerCaseFilter(in);
     }
 
+    public enum ExpansionStrategy {
+        NONE {
+            @Override
+            protected TokenStream expand(TokenStream stream) {
+                return stream;
+            }
+        },
+        SYNONYMS {
+            @Override
+            protected TokenStream expand(TokenStream stream) {
+                return new CustomSynonymsFilter(stream, synonymsMap);
+            }
+        },
+        CATEGORIES {
+            @Override
+            protected TokenStream expand(TokenStream stream) {
+                return new AddCategoryFilter(stream, categoryMap);
+            }
+        };
+
+        protected abstract TokenStream expand(final TokenStream stream);
+    }
+
     public static void main(String[] args) throws IOException {
-        final var analyzer = new MyAnalyzer(false, true);
-        final var testText = "The cat! It's on the table!";
+        final var analyzer = new MyAnalyzer();
+        final var testText = "The cat! It's on the table! cat-table";
 //        final var testText = "cat";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);

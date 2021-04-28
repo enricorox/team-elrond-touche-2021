@@ -34,6 +34,7 @@ import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
+import search.queries.PhraseQueryGenerator;
 import search.queries.SubsequencePhraseQueryGenerator;
 import topics.Topics;
 
@@ -294,50 +295,35 @@ public class TaskSearcher2g implements BasicSearcher {
                 System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
 
 //                booleanQueryBuilder = new BooleanQuery.Builder();
-                List<Query> queries = new ArrayList<>();
+                final var escapedTopic = QueryParserBase.escape(topic_query.getValue(TaskSearcher2g.TOPIC_FIELDS.TITLE));
 
-                Query bodyQuery = bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
-                bodyQuery = new BoostQuery(bodyQuery, 1f);
+                Query bodyQuery = bodyQueryParser.parse(escapedTopic);
+//                bodyQuery = new BoostQuery(bodyQuery, 1f);
 //                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
-                queries.add(bodyQuery);
 
-                Query titleQuery = titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE)));
-                titleQuery = new BoostQuery(titleQuery, 2f);
+                Query titleQuery = titleQueryParser.parse(escapedTopic);
+//                titleQuery = new BoostQuery(titleQuery, 2f);
 //                booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
-                queries.add(titleQuery);
 
                 final var stringQuery = topic_query.getValue(TOPIC_FIELDS.TITLE);
-                final int groupLen = 3;
-                Query subQuery = SubsequencePhraseQueryGenerator.createQuery(
-                        stringQuery,
-                        analyzer,
-                        groupLen,
-                        ParsedDocument.FIELDS.BODY,
-                        termNum -> termNum //fallback with groupLen == termNum
-                );
-                subQuery = new BoostQuery(Objects.requireNonNull(subQuery), 2f);
-//                booleanQueryBuilder.add(subQuery, BooleanClause.Occur.SHOULD);
-                queries.add(subQuery);
+                // 2-WORDS PHRASE QUERY
+                Query phraseQuery = new BooleanQuery.Builder()
+                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.BODY, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.TITLE, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                        .build();
+                ////////////////
 
-//                var subQuery2 = SubsequencePhraseQueryGenerator.createQuery(
-//                        stringQuery,
-//                        analyzer,
-//                        0, // callback will be executed
-//                        ParsedDocument.FIELDS.BODY,
-//                        termNum -> {
-//                            int len = termNum - 2;
-//                            if (len != groupLen && len >= 2) return len;
-//                            return 0; //abort
-//                        }
-//                );
-//                if (subQuery2 != null) {
-//                    subQuery2 = new BoostQuery(subQuery2, 2f);
-//                    booleanQueryBuilder.add(subQuery2, BooleanClause.Occur.SHOULD);
-//                }
-//                else System.err.println("skipped subQuery2");
-
-//                query = booleanQueryBuilder.build();
-                query = new DisjunctionMaxQuery(queries, 0.4f);
+//                query = new BooleanQuery.Builder()
+//                        .add(bodyQuery, BooleanClause.Occur.SHOULD)
+//                        .add(titleQuery, BooleanClause.Occur.SHOULD)
+//                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
+//                        .build();
+                query = new DisjunctionMaxQuery(Arrays.asList(
+                        bodyQuery,
+                        titleQuery,
+                        phraseQuery
+                ),
+                        0.3f);
 
                 docs = searcher.search(query, maxDocsRetrieved);
 

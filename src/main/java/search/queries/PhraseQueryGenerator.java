@@ -62,6 +62,7 @@ public class PhraseQueryGenerator {
         final CharTermAttribute charTermAttribute = stream.addAttribute(CharTermAttribute.class);
         final PositionIncrementAttribute positionIncrementAttribute = stream.addAttribute(PositionIncrementAttribute.class);
         final List<List<Term>> list = new ArrayList<>();
+        stream.reset();
         while (stream.incrementToken()) {
             final var word = charTermAttribute.toString();
             final var isSynonym = positionIncrementAttribute.getPositionIncrement() == 0;
@@ -74,6 +75,7 @@ public class PhraseQueryGenerator {
                 list.add(nl);
             }
         }
+        stream.close();
         return list.stream().map(l -> l.toArray(new Term[0])).collect(Collectors.toList());
     }
 }
