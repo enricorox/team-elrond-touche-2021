@@ -54,7 +54,7 @@ public class Main {
         //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
         final Similarity similarity=new LMDirichletSimilarity(1800);
-        //final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
+       // final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
         //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
         final String runPath = props.getProperty("work_folder");
