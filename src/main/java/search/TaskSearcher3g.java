@@ -360,7 +360,7 @@ public class TaskSearcher3g implements BasicSearcher {
                 Query query = new BooleanQuery.Builder()
                         .add(normalQuery, BooleanClause.Occur.SHOULD)
                         .add(typedQuery, BooleanClause.Occur.SHOULD)
-                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
+//                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
                         .build();
                 /////////////
 

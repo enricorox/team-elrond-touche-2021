@@ -78,6 +78,7 @@ public class OpenNlpAnalyzer extends Analyzer {
             stream = new StringReplaceFilter(stream, "'re", "are");
             stream = new StopFilter(stream, stopWords);
             stream = new PorterStemFilter(stream);
+//            stream = new LovinsStemFilter(stream);
             stream = new TypeConcatenateSynonymFilter(stream);
 
         stream = filterStrategy.filterStream(stream);

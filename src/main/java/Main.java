@@ -49,21 +49,25 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 //       final Analyzer a2 = a;
-        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
-        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
-        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
+//        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
+//        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
+//        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
 
-//        final Analyzer indexAnalyzer = new MyAnalyzer();
-//        final Analyzer queryAnalyzer = indexAnalyzer;
-//        final Analyzer typedQueryAnalyzer = indexAnalyzer;
-//        final Analyzer a2 = new MyAnalyzer(true);
+        final Analyzer indexAnalyzer = new MyAnalyzer();
+        final Analyzer queryAnalyzer = indexAnalyzer;
+        final Analyzer typedQueryAnalyzer = indexAnalyzer;
 
         final int numThreads = 12;
         final double threadsFact = 3;
 
-        final Similarity similarity = new BM25Similarity();
+//        final Similarity similarity = new BM25Similarity();
 //        final Similarity similarity = new LMDirichletSimilarity();
 //        final Similarity similarity = new DFISimilarity(new IndependenceStandardized());
+        final Similarity similarity = new DFRSimilarity(
+                new BasicModelG(),
+                new AfterEffectB(),
+                new NormalizationH1()
+                );
 
         final String runPath = props.getProperty("work_folder");
 

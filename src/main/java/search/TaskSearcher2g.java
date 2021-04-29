@@ -313,17 +313,17 @@ public class TaskSearcher2g implements BasicSearcher {
                         .build();
                 ////////////////
 
-//                query = new BooleanQuery.Builder()
-//                        .add(bodyQuery, BooleanClause.Occur.SHOULD)
-//                        .add(titleQuery, BooleanClause.Occur.SHOULD)
-//                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
-//                        .build();
-                query = new DisjunctionMaxQuery(Arrays.asList(
-                        bodyQuery,
-                        titleQuery,
-                        phraseQuery
-                ),
-                        0.3f);
+                query = new BooleanQuery.Builder()
+                        .add(bodyQuery, BooleanClause.Occur.SHOULD)
+                        .add(titleQuery, BooleanClause.Occur.SHOULD)
+                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
+                        .build();
+//                query = new DisjunctionMaxQuery(Arrays.asList(
+//                        bodyQuery,
+//                        titleQuery,
+//                        phraseQuery
+//                ),
+//                        0.3f);
 
                 docs = searcher.search(query, maxDocsRetrieved);
 

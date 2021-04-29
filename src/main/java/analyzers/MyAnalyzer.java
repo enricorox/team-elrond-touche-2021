@@ -3,6 +3,7 @@ package analyzers;
 import analyzers.filters.AddCategoryFilter;
 import analyzers.filters.BreakHyphensFilter;
 import analyzers.filters.CustomSynonymsFilter;
+import analyzers.filters.LovinsStemFilter;
 import org.apache.lucene.analysis.*;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
@@ -43,7 +44,8 @@ public class MyAnalyzer extends Analyzer {
         stream = new EnglishMinimalStemFilter(stream);
         stream = new StopFilter(stream, stopWords);
         stream = expansionStrategy.expand(stream);
-        stream = new PorterStemFilter(stream);
+//        stream = new PorterStemFilter(stream);
+        stream = new LovinsStemFilter(stream);
 
         return new TokenStreamComponents(tokenizer, stream);
     }
