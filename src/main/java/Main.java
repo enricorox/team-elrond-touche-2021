@@ -3,6 +3,8 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
+import org.apache.lucene.analysis.en.KStemFilter;
+import org.apache.lucene.analysis.en.KStemFilterFactory;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.*;
@@ -48,11 +50,12 @@ public class Main {
                .addTokenFilter(LowerCaseFilterFactory.class)
                .addTokenFilter(StopFilterFactory.class,
                                 "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
-               .addTokenFilter(PorterStemFilterFactory.class)
+//               .addTokenFilter(PorterStemFilterFactory.class)
+               .addTokenFilter(KStemFilterFactory.class)
                .build();
         //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
-        final Similarity similarity=new LMDirichletSimilarity(1000);
+        final Similarity similarity=new LMDirichletSimilarity();
        // final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
         //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
@@ -74,14 +77,14 @@ public class Main {
             System.out.printf("Start indexing with '%s'...\n", parserName);
             final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
                     expectedDocs, parser);
-            /*try {
+            try {
                 i.index();
                 System.out.println("Indexing succeeded");
             } catch (IOException e) {
                 System.out.println("Indexing failed");
                 e.printStackTrace();
                 return;
-            }*/
+            }
 
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
