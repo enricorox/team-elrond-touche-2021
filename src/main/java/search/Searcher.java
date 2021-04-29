@@ -305,6 +305,9 @@ public class Searcher {
 
                 sd = docs.scoreDocs;
 
+                // TODO get term vectors from the index
+                //reader.getTermVector(1, ParsedDocument.FIELDS.ID);
+
                 for (int i = 0, n = sd.length; i < n; i++) {
                     docID = reader.document(sd[i].doc, idField).get(ParsedDocument.FIELDS.ID);
 

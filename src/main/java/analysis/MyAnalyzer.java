@@ -19,8 +19,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.analysis.miscellaneous.LengthFilter;
+import org.apache.lucene.analysis.ngram.NGramTokenFilter;
 import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.io.Reader;
 
 import static analysis.AnalyzerUtil.consumeTokenStream;
+import static analysis.AnalyzerUtil.loadStopList;
 
 /**
  * Introductory example on how to use write your own {@link Analyzer} by using different {@link Tokenizer}s and {@link
@@ -49,9 +52,9 @@ public class MyAnalyzer extends Analyzer {
 	@Override
 	protected TokenStreamComponents createComponents(String fieldName) {
 
-		final Tokenizer source = new WhitespaceTokenizer();
+		//final Tokenizer source = new WhitespaceTokenizer(); // Do not use this (do not filter punctuation!)
 		//final Tokenizer source = new LetterTokenizer();
-		//final Tokenizer source = new StandardTokenizer();
+		final Tokenizer source = new StandardTokenizer();
 
 		TokenStream tokens = new LowerCaseFilter(source);
 
@@ -59,16 +62,21 @@ public class MyAnalyzer extends Analyzer {
 
 		//tokens = new EnglishPossessiveFilter(tokens);
 
-		//tokens = new StopFilter(tokens, loadStopList("smart.txt"));
+		tokens = new StopFilter(tokens, loadStopList("99webtools.txt")); // rel_ret=1165
+		//tokens = new StopFilter(tokens, loadStopList("99webtools_mod.txt")); // rel_ret=1163
+		//tokens = new StopFilter(tokens, loadStopList("smart.txt")); // rel_ret=1163
+		//tokens = new StopFilter(tokens, loadStopList("glasgow_stop_words.txt")); // rel_ret=1162
+		//tokens = new StopFilter(tokens, loadStopList("t101_minimal.txt")); // rel_ret=1126
+		//tokens = new StopFilter(tokens, loadStopList("corenlp_hardcoded.txt")); // rel_ret=1119
 
 		//tokens = new EnglishMinimalStemFilter(tokens);
 		//tokens = new PorterStemFilter(tokens);
 		//tokens = new KStemFilter(tokens);
 		//tokens = new LovinsStemFilter(tokens);
 
-		//tokens = new NGramTokenFilter(tokens, 3);
+		//tokens = new NGramTokenFilter(tokens, 3); // Do not use this! MAP < 0.04
 
-		tokens = new ShingleFilter(tokens, 2);
+		//tokens = new ShingleFilter(tokens, 2); // Do not use this! MAP < 0.06
 
 		return new TokenStreamComponents(source, tokens);
 	}
