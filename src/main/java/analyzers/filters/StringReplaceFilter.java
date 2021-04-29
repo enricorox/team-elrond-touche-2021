@@ -26,7 +26,7 @@ public class StringReplaceFilter extends TokenFilter {
 
     /**
      * Create a new {@link String}
-     * @param input input strea,
+     * @param input input stream,
      * @param pattern pattern to replace
      * @param replacement replacement String
      */
