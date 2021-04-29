@@ -30,7 +30,7 @@ import java.io.Reader;
 
 import static Analizer.AnalyzerUtil.consumeTokenStream;
 //import static Analizer.AnalyzerUtil.loadStopList;
-import static Analizer.StopWords.loadStopWords;
+//import static Analizer.StopWords.loadStopWords;
 
 /**
  * Introductory example on how to use write your own {@link Analyzer} by using different {@link Tokenizer}s and {@link
@@ -60,7 +60,7 @@ public class HelloAnalyzer extends Analyzer {
 
 		//tokens = new LengthFilter(tokens, 4, 10);
 		//tokens = new EnglishPossessiveFilter(tokens);
-		tokens = new StopFilter(tokens, StopWords.loadStopWords("smart.txt"));
+		//tokens = new StopFilter(tokens, StopWords.loadStopWords("99webtools.txt"));
 
 		//tokens = new EnglishMinimalStemFilter(tokens);
 		//tokens = new PorterStemFilter(tokens);
