@@ -17,17 +17,11 @@
 package index;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.StopFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.PorterStemFilterFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.DocumentParser;
@@ -104,6 +98,9 @@ public class DirectoryIndexer {
      */
     private long bytesCount;
 
+    /**
+     * Set for removing duplicate documents
+     */
     private Set<String> idSet = new HashSet<>();
 
     /**

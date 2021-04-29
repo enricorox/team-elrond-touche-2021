@@ -20,13 +20,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Analyzer that use OpenNLP for tokenization and part-of-the-speech tagging
+ */
 public class OpenNlpAnalyzer extends Analyzer {
     private final FilterStrategy filterStrategy;
     final Set<String> stopTypes = Stream.of(
             //https://dpdearing.com/posts/2011/12/opennlp-part-of-speech-pos-tags-penn-english-treebank/
             ".", ",", ":", "\"", "(", ")", "<", ">", "``", "''", "-LRB-", "-RRB-", "-RSB-", "-RSB-", "-LCB-", "-RCB-",
             "IN", //Preposition or subordinating conjunction
-//            "DT", //Determiner
             "CC", //Coordinating conjunction
             "PDT", //Predeterminer
             "POS", //Possessive ending
@@ -44,18 +46,29 @@ public class OpenNlpAnalyzer extends Analyzer {
             "CD", //Cardinal number
             "date", "time"
     ).collect(Collectors.toCollection(HashSet::new));
+    private final CharArraySet stopWords; //for caching purpose
 
-    private final CharArraySet stopWords;
-
+    /**
+     * Create a new OpenNlpAnalyzer
+     * @param filterStrategy how to filter the output tokens
+     */
     public OpenNlpAnalyzer(FilterStrategy filterStrategy) {
         this.filterStrategy = filterStrategy;
         stopWords = CharArraySet.unmodifiableSet(StopWords.loadStopWords("99webtools.txt"));
     }
 
+    /**
+     * Create a new OpenNlpAnalyzer with the default {@link FilterStrategy} NONE
+     */
     public OpenNlpAnalyzer() {
         this(FilterStrategy.NONE);
     }
 
+    /**
+     * Create a new tokenStream according with the {@link FilterStrategy} provided
+     * @param fieldName name of the field to search
+     * @return stream of tokens
+     */
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         final var loader = new ClasspathResourceLoader(ClassLoader.getSystemClassLoader());
@@ -63,12 +76,6 @@ public class OpenNlpAnalyzer extends Analyzer {
         TokenStream stream;
 
             stream = createNLPPOSFilter(tokenizer, loader);
-//            stream = createNLPNERFilter(stream, loader, "en-ner-location.bin");
-//            stream = createNLPNERFilter(stream, loader, "en-ner-person.bin");
-//            stream = createNLPNERFilter(stream, loader, "en-ner-organization.bin");
-//            stream = createNLPNERFilter(stream, loader, "en-ner-percentage.bin");
-//            stream = createNLPNERFilter(stream, loader, "en-ner-date.bin");
-//            stream = createNLPNERFilter(stream, loader, "en-ner-time.bin");
 
             stream = new RemoveTypesFilter(stream, stopTypes);
             stream = new BreakHyphensFilter(stream);
@@ -78,7 +85,6 @@ public class OpenNlpAnalyzer extends Analyzer {
             stream = new StringReplaceFilter(stream, "'re", "are");
             stream = new StopFilter(stream, stopWords);
             stream = new PorterStemFilter(stream);
-//            stream = new LovinsStemFilter(stream);
             stream = new TypeConcatenateSynonymFilter(stream);
 
         stream = filterStrategy.filterStream(stream);
@@ -86,6 +92,14 @@ public class OpenNlpAnalyzer extends Analyzer {
         return new TokenStreamComponents(tokenizer, stream);
     }
 
+    /**
+     * Create a new NLP-NER Tagger Filter
+     * It's not actually used in the final version of the analyzer
+     * @param stream input {@link TokenStream}
+     * @param loader The {@link ClasspathResourceLoader} to use
+     * @param name The name of the .bin ner-file to load
+     * @return a new TokenStream with the type attribute update according
+     */
     private TokenStream createNLPNERFilter(TokenStream stream, ClasspathResourceLoader loader, String name) {
         try {
             final var nerMd = OpenNLPOpsFactory.getNERTaggerModel("opennlp/" + name, loader);
@@ -96,6 +110,12 @@ public class OpenNlpAnalyzer extends Analyzer {
         }
     }
 
+    /**
+     * Create a new NLP-POS Tagger Filter
+     * @param tokenizer {@link Tokenizer} to use
+     * @param loader {@link ClasspathResourceLoader} to use
+     * @return a new TokenStream with the type attribute update according
+     */
     private TokenStream createNLPPOSFilter(Tokenizer tokenizer, ClasspathResourceLoader loader) {
         try {
             final var posMd = OpenNLPOpsFactory.getPOSTaggerModel("opennlp/en-pos-maxent.bin", loader);
@@ -107,6 +127,11 @@ public class OpenNlpAnalyzer extends Analyzer {
         }
     }
 
+    /**
+     * Create a new NLP Tokenizer
+     * @param loader the {@link ClasspathResourceLoader} to use for loading the nlp file
+     * @return a new {@link OpenNLPTokenizer}
+     */
     private Tokenizer createTokenizer(ClasspathResourceLoader loader) {
         try {
             final var tokOpModel = OpenNLPOpsFactory
@@ -119,20 +144,34 @@ public class OpenNlpAnalyzer extends Analyzer {
             throw new IllegalStateException(e);
         }
     }
-    
+
+    /**
+     * Enum that define the filter strategy to apply in the {@link OpenNlpAnalyzer} token stream
+     */
     public enum FilterStrategy {
+        /**
+         * Do not apply any filtering
+         * This is the one that should be used for the indexing
+         * Every token will have a synonym {@literal <}type{@literal >}token
+         */
         NONE {
             @Override
             protected TokenStream filterStream(TokenStream stream) {
                 return stream;
             }
         },
+        /**
+         * Return only the original tokens without the type synonyms
+         */
         ORIGINAL_ONLY {
             @Override
             protected TokenStream filterStream(TokenStream stream) {
                 return new SeparateTokenTypesFilter(stream, SeparateTokenTypesFilter.Keep.ORIGINAL);
             }
         },
+        /**
+         * Return only the typed tokens {@literal <}type{@literal >}token
+         */
         TYPED_ONLY {
             @Override
             protected TokenStream filterStream(TokenStream stream) {
@@ -143,13 +182,14 @@ public class OpenNlpAnalyzer extends Analyzer {
         protected abstract TokenStream filterStream(TokenStream stream);
     }
 
+    /**
+     * Test method for {@link OpenNlpAnalyzer}
+     * @param args command line args (ignored)
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         final var analyzer = new OpenNlpAnalyzer();
-//        final var testText = "The cat! It's on the table!";
-//        final var testText = "My city is beautiful, but Rome is probably better! ???";
-        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
-//        final var testText = "Should felons who have completed their sentence be allowed to vote?";
-//        final var testText = "Should performance-enhancing drugs be accepted in sports?";
+        final var testText = "Should felons who have completed their sentence be allowed to vote?";
         final var stream = analyzer.tokenStream("body", testText);
         CharTermAttribute att = stream.getAttribute(CharTermAttribute.class);
         PositionIncrementAttribute posAtt = stream.getAttribute(PositionIncrementAttribute.class);

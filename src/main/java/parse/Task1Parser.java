@@ -9,6 +9,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
+/**
+ * Parser for Task1 documents
+ */
 public class Task1Parser extends DocumentParser {
     private ParsedDocument document = null;
 

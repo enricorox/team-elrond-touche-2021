@@ -11,30 +11,20 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Class for generating phrase queries of consecutive tokens
+ */
 public class PhraseQueryGenerator {
-    public static Query create(final String fieldName, final String queryText, final int size) {
-        final var queryBuilder = new BooleanQuery.Builder();
-        final List<String[]> phraseList = new ArrayList<>();
-        final Queue<String> tmpList = new LinkedList<>();
-        Arrays.stream(queryText.split(" ")).forEach(word -> {
-            if (tmpList.size() == size) {
-                phraseList.add(tmpList.toArray(new String[0]));
-                tmpList.remove();
-            }
-            tmpList.add(word);
-        });
-        if (tmpList.size() == size) phraseList.add(tmpList.toArray(new String[0]));
-        phraseList.forEach(phrase -> {
-            final var phraseQueryBuilder = new PhraseQuery.Builder();
-            for (final var word: phrase) {
-                phraseQueryBuilder.add(new Term(fieldName, word));
-            }
-            queryBuilder.add(phraseQueryBuilder.build(), BooleanClause.Occur.SHOULD);
-        });
-        return queryBuilder.build();
-    }
-
-    public static Query create2(final Analyzer analyzer, final String fieldName, final String queryText, final int size) throws IOException {
+    /**
+     * Create a {@link Query} that search for phrases of @size dimension (considering also synonyms)
+     * @param analyzer the analyzer to use for tokenization
+     * @param fieldName name of the field to search
+     * @param queryText the text of the query
+     * @param size the dimension of the phrases
+     * @return a new {@link Query} that fuse all the generated phrase-queries
+     * @throws IOException
+     */
+    public static Query create(final Analyzer analyzer, final String fieldName, final String queryText, final int size) throws IOException {
         final var queryBuilder = new BooleanQuery.Builder();
         final List<Term[][]> phraseList = new ArrayList<>();
         final Queue<Term[]> tmpQueue = new LinkedList<>();

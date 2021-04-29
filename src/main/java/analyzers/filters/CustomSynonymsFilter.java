@@ -2,30 +2,35 @@ package analyzers.filters;
 
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.analysis.synonym.WordnetSynonymParser;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import org.apache.lucene.util.AttributeSource;
-import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.fst.Util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.util.*;
-import java.util.regex.Pattern;
 
+/**
+ * A custom filter that add synonyms from word-net
+ */
 public class CustomSynonymsFilter extends TokenFilter {
+    /**
+     * Map of word -> synonyms
+     */
     private final Map<String, Set<String>> synonymMap;
-    private final CharTermAttribute charTermAttribute;
-    private final PositionIncrementAttribute positionIncrementAttribute;
+    /**
+     * Queue of remaining synonyms to inject in stream
+     */
     private final Queue<String> remainingSynonyms = new ArrayDeque<>();
 
-    private AttributeSource.State state;
+    private final CharTermAttribute charTermAttribute;
+    private final PositionIncrementAttribute positionIncrementAttribute;
 
+    /**
+     * Create a new {@link CustomSynonymsFilter}
+     * @param input input stream
+     */
     public CustomSynonymsFilter(TokenStream input) {
         super(input);
         this.charTermAttribute = addAttribute(CharTermAttribute.class);
@@ -34,6 +39,11 @@ public class CustomSynonymsFilter extends TokenFilter {
         loadSynonymMap();
     }
 
+    /**
+     * Create a new {@link CustomSynonymsFilter}
+     * @param input input stream
+     * @param synonymMap synonyms map to reuse, if size is 0 the map is filled
+     */
     public CustomSynonymsFilter(TokenStream input, Map<String, Set<String>> synonymMap) {
         super(input);
         this.charTermAttribute = addAttribute(CharTermAttribute.class);
@@ -47,7 +57,6 @@ public class CustomSynonymsFilter extends TokenFilter {
     public boolean incrementToken() throws IOException {
         if (!remainingSynonyms.isEmpty()) {
             final var syn = remainingSynonyms.poll();
-            restoreState(state);
             charTermAttribute.setEmpty().append(syn);
             positionIncrementAttribute.setPositionIncrement(0);
             return true;
@@ -63,7 +72,6 @@ public class CustomSynonymsFilter extends TokenFilter {
                 remainingSynonyms.add(s);
             }
         }
-//        charTermAttribute.setEmpty().append(token);
         positionIncrementAttribute.setPositionIncrement(1);
         return true;
     }
@@ -73,6 +81,9 @@ public class CustomSynonymsFilter extends TokenFilter {
         input.reset();
     }
 
+    /**
+     * Method for loading synonyms inside {@code synonymMap}
+     */
     private void loadSynonymMap() {
         try {
             final var res = CustomSynonymsFilter.class.getResourceAsStream("../../wn_s.pl");

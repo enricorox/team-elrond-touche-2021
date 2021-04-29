@@ -37,9 +37,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Indexes documents processing a whole directory tree.
+ * This variant execute the indexing with multiple thread
  *
  * @author Nicola Ferro
- * @version 1.00
+ * @author elrond-group
+ * @version 2.00
  * @since 1.00
  */
 public class DirectoryIndexerMT {
@@ -99,23 +101,36 @@ public class DirectoryIndexerMT {
      */
     private long bytesCount;
 
+    /**
+     * Set for removing duplicate documents
+     */
     private Set<String> idSet = new HashSet<>();
 
+    /**
+     * Number ot thread to use
+     */
     private final int numThreads;
+
+    /**
+     * Dimension of the thread-task queue as a factor of @numThreads
+     */
     private final double threadsQueueFactor;
 
     /**
      * Creates a new indexer.
      *
-     * @param analyzer        the {@code Analyzer} to be used.
-     * @param similarity      the {@code Similarity} to be used.
-     * @param ramBufferSizeMB the size in megabytes of the RAM buffer for indexing documents.
-     * @param indexPath       the directory where to store the index.
-     * @param docsPath        the directory from which documents have to be read.
-     * @param extension       the extension of the files to be indexed.
-     * @param charsetName     the name of the charset used for encoding documents.
-     * @param expectedDocs    the total number of documents expected to be indexed
-     * @param dpCls           the class of the {@code DocumentParser} to be used.
+     * @param analyzer           the {@code Analyzer} to be used.
+     * @param similarity         the {@code Similarity} to be used.
+     * @param ramBufferSizeMB    the size in megabytes of the RAM buffer for indexing documents.
+     * @param indexPath          the directory where to store the index.
+     * @param docsPath           the directory from which documents have to be read.
+     * @param extension          the extension of the files to be indexed.
+     * @param charsetName        the name of the charset used for encoding documents.
+     * @param expectedDocs       the total number of documents expected to be indexed
+     * @param dpCls              the class of the {@code DocumentParser} to be used.
+     * @param numThreads         number of threads to use
+     * @param threadsQueueFactor max dimension of threads-task queue as a factor of @numThreads (suggested 2 or 3
+     *                           but might be lower if saving ram is important)
      * @throws NullPointerException     if any of the parameters is {@code null}.
      * @throws IllegalArgumentException if any of the parameters assumes invalid values.
      */
@@ -348,11 +363,4 @@ public class DirectoryIndexerMT {
 
         System.out.printf("#### Indexing complete ####%n");
     }
-
-    /**
-     * Main method of the class. Just for testing purposes.
-     *
-     * @param args command line arguments.
-     * @throws Exception if something goes wrong while indexing.
-     */
 }

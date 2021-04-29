@@ -8,11 +8,28 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import java.io.IOException;
 
+/**
+ * Filter that replace a given pattern inside the stream
+ */
 public class StringReplaceFilter extends TokenFilter {
+    /**
+     * String pattern to replace
+     */
     final String pattern;
+
+    /**
+     * Replacement String
+     */
     final String replacement;
+
     private final CharTermAttribute charTermAttribute;
 
+    /**
+     * Create a new {@link String}
+     * @param input input strea,
+     * @param pattern pattern to replace
+     * @param replacement replacement String
+     */
     public StringReplaceFilter(TokenStream input, String pattern, String replacement) {
         super(input);
         this.pattern = pattern;

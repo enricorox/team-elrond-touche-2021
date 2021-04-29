@@ -7,7 +7,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+/**
+ * Utility for loading stop words
+ */
 public class StopWords {
+    /**
+     * Load stop words
+     * @param name name of the file
+     * @return parsed {@link CharArraySet} from the stop file
+     */
     public static CharArraySet loadStopWords(String name) {
         try {
             final var res = StopWords.class.getResourceAsStream("../"+name);

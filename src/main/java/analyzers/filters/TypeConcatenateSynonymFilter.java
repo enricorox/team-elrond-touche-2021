@@ -8,13 +8,24 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import java.io.IOException;
 
+/**
+ * Filter that add a synonym with the type concatenated at the token,
+ * es: token=cat, type=noun ==> {@literal <}noun{@literal >}cat
+ */
 public class TypeConcatenateSynonymFilter extends TokenFilter {
     private final TypeAttribute typeAttribute;
     private final CharTermAttribute charTermAttribute;
     private final PositionIncrementAttribute positionIncrementAttribute;
 
+    /**
+     * Last synonym to inject inside the stream
+     */
     private String lastSynonym = null;
 
+    /**
+     * Create new {@link TypeConcatenateSynonymFilter}
+     * @param input input stream
+     */
     public TypeConcatenateSynonymFilter(TokenStream input) {
         super(input);
         typeAttribute = addAttribute(TypeAttribute.class);

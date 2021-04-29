@@ -10,6 +10,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Class that represent a list of {@link Topic}, useful for deserializing
+ */
 public class Topics {
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "topic")
@@ -30,6 +33,12 @@ public class Topics {
         return build.toString();
     }
 
+    /**
+     * Method for deserializing Task1 topics
+     * @param path path of the topic file
+     * @return parsed {@link Topics}
+     * @throws IOException
+     */
     public static Topics loadTopics(String path) throws IOException {
         final var file = new File(path);
         final var in = new FileInputStream(file);

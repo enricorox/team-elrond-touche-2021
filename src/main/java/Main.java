@@ -1,5 +1,4 @@
-import analyzers.MyAnalyzer;
-import analyzers.OpenNlpAnalyzer;
+import analyzers.TaskAnalyzer;
 import index.DirectoryIndexerMT;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.similarities.*;
@@ -7,8 +6,8 @@ import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
-import search.TaskSearcher2g;
-import search.TaskSearcher3g;
+import search.TaskBodySearcher;
+import search.OpenNlpTaskSearcher;
 import utils.Props;
 
 import java.io.File;
@@ -53,7 +52,7 @@ public class Main {
 //        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
 //        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
 
-        final Analyzer indexAnalyzer = new MyAnalyzer();
+        final Analyzer indexAnalyzer = new TaskAnalyzer(TaskAnalyzer.ExpansionStrategy.SYNONYMS);
         final Analyzer queryAnalyzer = indexAnalyzer;
         final Analyzer typedQueryAnalyzer = indexAnalyzer;
 
@@ -102,8 +101,8 @@ public class Main {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
                     case "taskSearcher1" -> new TaskSearcher1(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher2g" -> new TaskSearcher2g(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher3g" -> new TaskSearcher3g(queryAnalyzer, typedQueryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
+                    case "taskSearcher2g" -> new TaskBodySearcher(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher3g" -> new OpenNlpTaskSearcher(queryAnalyzer, typedQueryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");

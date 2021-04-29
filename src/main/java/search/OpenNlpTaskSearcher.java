@@ -16,6 +16,7 @@
 
 package search;
 
+import analyzers.OpenNlpAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;
@@ -24,18 +25,15 @@ import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.benchmark.quality.QualityQuery;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.apache.lucene.queryparser.xml.builders.FuzzyLikeThisQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 import parse.ParsedDocument;
 import search.queries.PhraseQueryGenerator;
-import search.queries.SubsequencePhraseQueryGenerator;
 import topics.Topics;
 
 import java.io.IOException;
@@ -46,15 +44,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * Searches a document collection.
+ * Searches a document collection parsed with {@link analyzers.OpenNlpAnalyzer}
  *
  * @author Nicola Ferro (ferro@dei.unipd.it)
- * @version 1.00
+ * @author elrond-group
+ * @version 2.00
  * @since 1.00
  */
-public class TaskSearcher2g implements BasicSearcher {
+public class OpenNlpTaskSearcher implements BasicSearcher {
 
     /**
      * The fields of the typical TREC topics.
@@ -104,6 +107,10 @@ public class TaskSearcher2g implements BasicSearcher {
 
     private final QueryParser titleQueryParser;
 
+    private final QueryParser typedBodyQueryParser;
+
+    private final QueryParser typedTitleQueryParser;
+
     /**
      * The maximum number of documents to retrieve
      */
@@ -114,31 +121,61 @@ public class TaskSearcher2g implements BasicSearcher {
      */
     private long elapsedTime = Long.MIN_VALUE;
 
-    private final Analyzer analyzer;
+    /**
+     * Analyzer for normal search
+     * Should be an {@link OpenNlpAnalyzer} with {@link analyzers.OpenNlpAnalyzer.FilterStrategy} ORIGINAL_ONLY
+     */
+    private final Analyzer originalTokensAnalyzer;
+
+    /**
+     * Analyzer for typed search
+     * Should be an {@link OpenNlpAnalyzer} with {@link analyzers.OpenNlpAnalyzer.FilterStrategy} TYPED_ONLY
+     */
+    private final Analyzer typedTokensAnalyzer;
+
+    /**
+     * Number ot thread to use
+     */
+    private final int numThreads;
+
+    /**
+     * Dimension of the thread-task queue as a factor of @numThreads
+     */
+    private final double threadsQueueFactor;
 
 
     /**
      * Creates a new searcher.
      *
-     * @param analyzer         the {@code Analyzer} to be used.
-     * @param similarity       the {@code Similarity} to be used.
-     * @param indexPath        the directory where containing the index to be searched.
-     * @param topicsFile       the file containing the topics to search for.
-     * @param expectedTopics   the total number of topics expected to be searched.
-     * @param runID            the identifier of the run to be created.
-     * @param runPath          the path where to store the run.
-     * @param maxDocsRetrieved the maximum number of documents to be retrieved.
+     * @param originalTokensAnalyzer    Analyzer for normal search, should be an {@link OpenNlpAnalyzer}
+     *                                  with {@link analyzers.OpenNlpAnalyzer.FilterStrategy} ORIGINAL_ONLY
+     * @param typedTokensAnalyzer       Analyzer for typed search, should be an {@link OpenNlpAnalyzer}
+     *                                  with {@link analyzers.OpenNlpAnalyzer.FilterStrategy} TYPED_ONLY
+     * @param similarity                the {@code Similarity} to be used.
+     * @param indexPath                 the directory where containing the index to be searched.
+     * @param topicsFile                the file containing the topics to search for.
+     * @param expectedTopics            the total number of topics expected to be searched.
+     * @param runID                     the identifier of the run to be created.
+     * @param runPath                   the path where to store the run.
+     * @param maxDocsRetrieved          the maximum number of documents to be retrieved.
+     * @param numThreads                Number ot thread to use
+     * @param threadsQueueFactor        Dimension of the thread-task queue as a factor of @numThreads
      * @throws NullPointerException     if any of the parameters is {@code null}.
      * @throws IllegalArgumentException if any of the parameters assumes invalid values.
      */
-    public TaskSearcher2g(final Analyzer analyzer, final Similarity similarity, final String indexPath,
-                         final String topicsFile, final int expectedTopics, final String runID, final String runPath,
-                         final int maxDocsRetrieved) {
+    public OpenNlpTaskSearcher(final Analyzer originalTokensAnalyzer, final Analyzer typedTokensAnalyzer, final Similarity similarity, final String indexPath,
+                               final String topicsFile, final int expectedTopics, final String runID, final String runPath,
+                               final int maxDocsRetrieved, int numThreads, double threadsQueueFactor) {
 
-        if (analyzer == null) {
+        if (originalTokensAnalyzer == null) {
             throw new NullPointerException("Analyzer cannot be null.");
         }
-        this.analyzer = analyzer;
+        this.originalTokensAnalyzer = originalTokensAnalyzer;
+
+        if (typedTokensAnalyzer == null) {
+            throw new NullPointerException("Analyzer (2) cannot be null.");
+        }
+        this.typedTokensAnalyzer = typedTokensAnalyzer;
 
         if (similarity == null) {
             throw new NullPointerException("Similarity cannot be null.");
@@ -207,8 +244,10 @@ public class TaskSearcher2g implements BasicSearcher {
                     topics.length);
         }
 
-        bodyQueryParser = new QueryParser(ParsedDocument.FIELDS.BODY, analyzer);
-        titleQueryParser = new QueryParser(ParsedDocument.FIELDS.TITLE, analyzer);
+        bodyQueryParser = new QueryParser(ParsedDocument.FIELDS.BODY, originalTokensAnalyzer);
+        titleQueryParser = new QueryParser(ParsedDocument.FIELDS.TITLE, originalTokensAnalyzer);
+        typedBodyQueryParser = new QueryParser(ParsedDocument.FIELDS.BODY, typedTokensAnalyzer);
+        typedTitleQueryParser = new QueryParser(ParsedDocument.FIELDS.TITLE, typedTokensAnalyzer);
 
         if (runID == null) {
             throw new NullPointerException("Run identifier cannot be null.");
@@ -255,6 +294,9 @@ public class TaskSearcher2g implements BasicSearcher {
                     "The maximum number of documents to be retrieved cannot be less than or equal to zero.");
         }
 
+        this.numThreads = numThreads;
+        this.threadsQueueFactor = threadsQueueFactor;
+
         this.maxDocsRetrieved = maxDocsRetrieved;
     }
 
@@ -283,66 +325,84 @@ public class TaskSearcher2g implements BasicSearcher {
         final Set<String> idField = new HashSet<>();
         idField.add(ParsedDocument.FIELDS.ID);
 
-//        BooleanQuery.Builder booleanQueryBuilder = null;
-        Query query = null;
-        TopDocs docs = null;
-        ScoreDoc[] scoreDocs = null;
-        String docID = null;
+        Queue<Future<FutureSearchResult>> futures = new LinkedList<>();
+        Queue<String[]> results = new LinkedList<>();
+        final var threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(numThreads);
 
         try {
             for (QualityQuery topic_query : topics) {
 
                 System.out.printf("Searching for topic %s.%n", topic_query.getQueryID());
 
-//                booleanQueryBuilder = new BooleanQuery.Builder();
-                final var escapedTopic = QueryParserBase.escape(topic_query.getValue(TaskSearcher2g.TOPIC_FIELDS.TITLE));
+                final var escapedTopic = QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE));
 
+                //create queries
+
+                // NORMAL QUERY
                 Query bodyQuery = bodyQueryParser.parse(escapedTopic);
-//                bodyQuery = new BoostQuery(bodyQuery, 1f);
-//                booleanQueryBuilder.add(bodyQuery, BooleanClause.Occur.SHOULD);
 
                 Query titleQuery = titleQueryParser.parse(escapedTopic);
-//                titleQuery = new BoostQuery(titleQuery, 2f);
-//                booleanQueryBuilder.add(titleQuery, BooleanClause.Occur.SHOULD);
 
-                final var stringQuery = topic_query.getValue(TOPIC_FIELDS.TITLE);
-                // 2-WORDS PHRASE QUERY
-                Query phraseQuery = new BooleanQuery.Builder()
-                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.BODY, escapedTopic, 2), BooleanClause.Occur.SHOULD)
-                        .add(PhraseQueryGenerator.create2(analyzer, ParsedDocument.FIELDS.TITLE, escapedTopic, 2), BooleanClause.Occur.SHOULD)
+                Query normalQuery = new BooleanQuery.Builder()
+                    .add(bodyQuery, BooleanClause.Occur.SHOULD)
+                    .add(titleQuery, BooleanClause.Occur.SHOULD)
+                    .build();
+                normalQuery = new BoostQuery(normalQuery, 1f);
+                ////////////////////
+
+                // TYPED QUERY
+                Query typedBodyQuery = typedBodyQueryParser.parse(escapedTopic);
+
+                Query typedTitleQuery = typedTitleQueryParser.parse(escapedTopic);
+
+                Query typedQuery = new BooleanQuery.Builder()
+                        .add(typedBodyQuery, BooleanClause.Occur.SHOULD)
+                        .add(typedTitleQuery, BooleanClause.Occur.SHOULD)
                         .build();
-                ////////////////
+                //////////////////////
 
-                query = new BooleanQuery.Builder()
-                        .add(bodyQuery, BooleanClause.Occur.SHOULD)
-                        .add(titleQuery, BooleanClause.Occur.SHOULD)
-                        .add(phraseQuery, BooleanClause.Occur.SHOULD)
+                //FINAL QUERY
+                Query query = new BooleanQuery.Builder()
+                        .add(normalQuery, BooleanClause.Occur.SHOULD)
+                        .add(typedQuery, BooleanClause.Occur.SHOULD)
                         .build();
-//                query = new DisjunctionMaxQuery(Arrays.asList(
-//                        bodyQuery,
-//                        titleQuery,
-//                        phraseQuery
-//                ),
-//                        0.3f);
+                /////////////
 
-                docs = searcher.search(query, maxDocsRetrieved);
 
-                scoreDocs = docs.scoreDocs;
+                //submit search
+                final var f = threadPool.submit(() -> {
+                    final var docs = searcher.search(query, maxDocsRetrieved);
+                    return new FutureSearchResult(docs, topic_query.getQueryID());
+                });
+                futures.add(f);
 
-                for (int i = 0, n = scoreDocs.length; i < n; i++) {
-                    docID = reader.document(scoreDocs[i].doc, idField).get(ParsedDocument.FIELDS.ID);
-
-                    run.printf(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", topic_query.getQueryID(), docID, i, scoreDocs[i].score,
-                            runID);
+                //prevent queue to grow too big
+                while (futures.size() > threadsQueueFactor * numThreads) {
+                    try {
+                        final var r = futures.remove().get();
+                        results.add(r.resultString(reader, idField, runID));
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
-
-                run.flush();
-
             }
+            futures.forEach(f -> {
+                try {
+                    results.add(f.get().resultString(reader, idField, runID));
+                } catch (ExecutionException | InterruptedException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
+            results.forEach(res -> {
+                Arrays.asList(res).forEach(run::print);
+                run.flush();
+            });
         } finally {
             run.close();
 
             reader.close();
+
+            threadPool.shutdown();
         }
 
         elapsedTime = System.currentTimeMillis() - start;
@@ -380,4 +440,29 @@ public class TaskSearcher2g implements BasicSearcher {
 
     }
 
+    /**
+     * Record class for producing the run string of the searches executed in multithreading
+     */
+    private record FutureSearchResult(TopDocs docs, String queryId) {
+
+        public String[] resultString(final IndexReader reader, final Set<String> idField, final String runID) {
+            try {
+                final var scoreDocs = docs.scoreDocs;
+                final var ret = new ArrayList<String>();
+
+
+                for (int i = 0, n = scoreDocs.length; i < n; i++) {
+                    final var score = scoreDocs[i].score;
+                    final var docID = reader.document(scoreDocs[i].doc, idField).get(ParsedDocument.FIELDS.ID);
+
+                    final var s = String.format(Locale.ENGLISH, "%s\tQ0\t%s\t%d\t%.6f\t%s%n", queryId, docID, i, score,
+                            runID);
+                    ret.add(s);
+                }
+                return ret.toArray(new String[0]);
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
 }

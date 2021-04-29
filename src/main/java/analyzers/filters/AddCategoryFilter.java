@@ -8,13 +8,27 @@ import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Filter that add categories (extracted from word-net) as synonyms
+ */
 public class AddCategoryFilter extends TokenFilter {
+    /**
+     * Map word -> category
+     */
     private final Map<String, String> categoryMap;
+
+    /**
+     * Last category to inject inside the stream
+     */
     private String lastCategory = null;
 
     private final CharTermAttribute charTermAttribute;
     private final PositionIncrementAttribute positionIncrementAttribute;
 
+    /**
+     * Create a new {@link AddCategoryFilter}
+     * @param stream input stream
+     */
     public AddCategoryFilter(TokenStream stream) {
         super(stream);
         charTermAttribute = addAttribute(CharTermAttribute.class);
@@ -23,6 +37,11 @@ public class AddCategoryFilter extends TokenFilter {
         loadCategories();
     }
 
+    /**
+     * Create a new {@link AddCategoryFilter}
+     * @param stream input stream
+     * @param categoryMap category map to re-use, if the size is 0 the categories are loaded into it
+     */
     public AddCategoryFilter(TokenStream stream, Map<String, String> categoryMap) {
         super(stream);
         charTermAttribute = addAttribute(CharTermAttribute.class);
@@ -45,11 +64,13 @@ public class AddCategoryFilter extends TokenFilter {
 
         final var token = charTermAttribute.toString();
         lastCategory = categoryMap.get(token);
-//        charTermAttribute.setEmpty().append(token);
         positionIncrementAttribute.setPositionIncrement(1);
         return true;
     }
 
+    /**
+     * Custom parsing method for loading the categories inside {@code categoryMap}
+     */
     private void loadCategories() {
         final String dirPath = Objects.requireNonNull(getClass().getResource("../../words.db/")).getPath();
         final var files = Objects.requireNonNull(new File(dirPath).listFiles((dir, name) -> new File(dir, name).isFile()));
@@ -76,6 +97,5 @@ public class AddCategoryFilter extends TokenFilter {
                 throw new IllegalStateException(e);
             }
         }
-//        System.err.printf("Loaded %d categorized words%n", categoryMap.size());
     }
 }

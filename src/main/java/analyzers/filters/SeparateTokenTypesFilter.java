@@ -9,16 +9,26 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 
 import java.io.IOException;
 
-//filter that separate original token from type-concatenated tokens
-//e.g. in stream "token1 <type1>token1 token2 <type2>token2"
-//originals are token1 token2
-//type-concatenated are <type1>token1 <type2>token2
+/**
+ * Filter that separate original token from type-concatenated tokens
+ * e.g. in stream "token1 {@literal <}type1{@literal >}token1 token2 {@literal <}type2{@literal >}token2"
+ * originals are token1 token2
+ * type-concatenated are {@literal <}type1{@literal >}token1 {@literal <}type2{@literal >}token2
+ */
 public class SeparateTokenTypesFilter extends TokenFilter {
+    /**
+     * What to keep
+     */
     private final Keep keep;
 
     private final CharTermAttribute charTermAttribute;
     private final PositionIncrementAttribute positionIncrementAttribute;
 
+    /**
+     * Create new {@link SeparateTokenTypesFilter}
+     * @param input input stream
+     * @param keep what to keep
+     */
     public SeparateTokenTypesFilter(TokenStream input, Keep keep) {
         super(input);
         this.keep = keep;
@@ -42,6 +52,9 @@ public class SeparateTokenTypesFilter extends TokenFilter {
         return true;
     }
 
+    /**
+     * Enum that specify what to keep between original tokens and typed-tokens
+     */
     public enum Keep {
         ORIGINAL {@Override protected boolean isToKeep(boolean isTypeToken) {return !isTypeToken;}},
         TYPE_C_TOKEN{@Override protected boolean isToKeep(boolean isTypeToken) {return isTypeToken;}};
@@ -49,11 +62,13 @@ public class SeparateTokenTypesFilter extends TokenFilter {
         protected abstract boolean isToKeep(boolean isTypeToken);
     }
 
+    /**
+     * Main method for testing purpose
+     * @param args cmd-args (ignored)
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
         final var analyzer = new OpenNlpAnalyzer();
-//        final var testText = "The cat! It's on the table!";
-//        final var testText = "My city is beautiful, but Rome is probably better! ???";
-//        final var testText = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. ";
         final var testText = "Should felons who have completed their sentence be allowed to vote?";
         var stream = analyzer.tokenStream("body", testText);
         stream = new SeparateTokenTypesFilter(stream, Keep.TYPE_C_TOKEN);
