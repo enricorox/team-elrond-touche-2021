@@ -9,7 +9,7 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import java.io.IOException;
 
 /**
- * Filter that replace a given pattern inside the stream
+ * Filter that replace a given string inside the stream
  */
 public class StringReplaceFilter extends TokenFilter {
     /**
@@ -43,7 +43,7 @@ public class StringReplaceFilter extends TokenFilter {
     public boolean incrementToken() throws IOException {
         if (!input.incrementToken()) return false;
         final var token = charTermAttribute.toString();
-        if (token.contains(pattern)) charTermAttribute.setEmpty().append(token.replace(pattern, replacement));
+        if (token.equals(pattern)) charTermAttribute.setEmpty().append(replacement);
         return true;
     }
 }
