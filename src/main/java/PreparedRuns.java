@@ -45,7 +45,7 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "OpenNlpRun",
+                    "ElrondOpenNlpRun",
                     data.runPath,
                     data.maxDocsRetrieved,
                     data.numThreads,
@@ -78,7 +78,7 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "TaskBodyRun",
+                    "ElrondTaskBodyRun",
                     data.runPath,
                     data.maxDocsRetrieved
             );
