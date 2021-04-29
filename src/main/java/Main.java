@@ -47,12 +47,12 @@ public class Main {
                 .withTokenizer(StandardTokenizerFactory.class)
                .addTokenFilter(LowerCaseFilterFactory.class)
                .addTokenFilter(StopFilterFactory.class,
-                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+                                "ignoreCase", "false", "words", "smart.txt", "format", "wordset")
                .addTokenFilter(PorterStemFilterFactory.class)
                .build();
         //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
-        final Similarity similarity=new LMDirichletSimilarity();
+        final Similarity similarity=new LMDirichletSimilarity(1800);
        // final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
         //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
