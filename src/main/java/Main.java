@@ -52,7 +52,7 @@ public class Main {
                .build();
         //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
-        final Similarity similarity=new LMDirichletSimilarity(1000);
+        final Similarity similarity=new LMDirichletSimilarity(1500);
        // final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
         //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
