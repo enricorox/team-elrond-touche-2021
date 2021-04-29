@@ -110,7 +110,7 @@ public class ParsedDocument {
 
 //        if (title.isEmpty()) {
 //            throw new IllegalStateException("Document title cannot be empty.");
-//        }
+//         {
         this.title = title;//can be empty
     }
 
