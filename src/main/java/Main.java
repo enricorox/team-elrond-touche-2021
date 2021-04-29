@@ -51,6 +51,14 @@ public class Main {
                .addTokenFilter(PorterStemFilterFactory.class)
                .build();
 
+              /*final CustomAnalyzer.Builder builderAnalyzer = CustomAnalyzer.builder()
+                .withTokenizer(StandardTokenizerFactory.class)
+                .addTokenFilter(LowerCaseFilterFactory.class)
+                .addTokenFilter(StopFilterFactory.class)
+                .addTokenFilter(ApostropheFilterFactory.class)
+                .addTokenFilter(EnglishMinimalStemFilterFactory.class)
+                .addTokenFilter(WordDelimiterGraphFilterFactory.class);*/
+
         //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
         final Similarity similarity=new LMDirichletSimilarity(1800);
