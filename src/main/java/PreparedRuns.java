@@ -57,7 +57,7 @@ public enum PreparedRuns {
     TASK_BODY_SEARCHER("TaskAnalyzer", "TaskBodySearcher") {
         @Override
         public void execute(Data data) {
-            final Analyzer analyzer = new TaskAnalyzer(TaskAnalyzer.ExpansionStrategy.SYNONYMS);
+            final Analyzer analyzer = new TaskAnalyzer();
             final Similarity similarity = new DFISimilarity(new IndependenceStandardized());
             indexer = new DirectoryIndexerMT(
                     analyzer,
