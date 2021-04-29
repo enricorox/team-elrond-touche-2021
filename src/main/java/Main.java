@@ -36,88 +36,39 @@ public class Main {
         final int expectedDocs = Integer.parseInt(props.getProperty("expectedDocs"));
         final String charsetName = props.getProperty("charsetName");
 
-    /*    final Analyzer a = CustomAnalyzer.builder().withTokenizer(StandardTokenizerFactory.class).addTokenFilter(
-                LowerCaseFilterFactory.class).addTokenFilter(StopFilterFactory.class).build();
-*/
-//       final Analyzer a = CustomAnalyzer.builder(Paths.get(props.getProperty("stop_list")))
-//                .withTokenizer(StandardTokenizerFactory.class)
-//               .addTokenFilter(LowerCaseFilterFactory.class)
-//               .addTokenFilter(EnglishMinimalStemFilterFactory.class)
-//               .addTokenFilter(StopFilterFactory.class,
-//                                "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
-//               .addTokenFilter(PorterStemFilterFactory.class)
-//               .build();
-//       final Analyzer a2 = a;
-//        final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
-//        final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
-//        final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
-
-        final Analyzer indexAnalyzer = new TaskAnalyzer(TaskAnalyzer.ExpansionStrategy.SYNONYMS);
-        final Analyzer queryAnalyzer = indexAnalyzer;
-        final Analyzer typedQueryAnalyzer = indexAnalyzer;
-
         final int numThreads = 12;
-        final double threadsFact = 3;
-
-//        final Similarity similarity = new BM25Similarity();
-//        final Similarity similarity = new LMDirichletSimilarity();
-//        final Similarity similarity = new DFISimilarity(new IndependenceStandardized());
-        final Similarity similarity = new DFRSimilarity(
-                new BasicModelG(),
-                new AfterEffectB(),
-                new NormalizationH1()
-                );
+        final double threadQueueFactor = 3;
 
         final String runPath = props.getProperty("work_folder");
-
         final int maxDocsRetrieved = Integer.parseInt(props.getProperty("maxDocsRetrieved"));
-
         final int expectedTopics = Integer.parseInt(props.getProperty("expectedTopics"));
-
         final var topics = props.getProperty("topics_path");
 
-        Arrays.stream(props.getProperty("parseList").split(" ")).forEach(parserName -> {
-            final String indexPath = "%s/index-%s".formatted(props.getProperty("work_folder"), parserName);
-            final Class<? extends DocumentParser> parser = switch (parserName) {
-                case "task1parser" -> Task1Parser.class;
-                default -> throw new IllegalArgumentException("Unknown parser %s".formatted(parserName));
-            };
-            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-            System.out.printf("Start indexing with '%s'...\n", parserName);
-//            final DirectoryIndexer i = new DirectoryIndexer(a, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
-//                    expectedDocs, parser);
-            final DirectoryIndexerMT i = new DirectoryIndexerMT(indexAnalyzer, similarity, ramBuffer, indexPath, docsPath, extension, charsetName,
-                    expectedDocs, parser, numThreads, threadsFact);
-            try {
-                i.index();
-                System.out.println("Indexing succeeded");
-            } catch (IOException e) {
-                System.out.println("Indexing failed");
-                e.printStackTrace();
-                return;
-            }
+        final String indexPath = "%s/index-task1parser".formatted(props.getProperty("work_folder"));
 
-            Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
-                final var runID = "%s-%s".formatted(parserName, method);
-                final BasicSearcher searcher = switch (method) {
-                    case "taskSearcher1" -> new TaskSearcher1(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher2g" -> new TaskBodySearcher(queryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
-                    case "taskSearcher3g" -> new OpenNlpTaskSearcher(queryAnalyzer, typedQueryAnalyzer, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved, numThreads, threadsFact);
-                    default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
-                };
-                System.out.println("\n############################################");
-                System.out.printf("Searching with '%s'...\n", method);
-                try {
-                    searcher.search();
-                    System.out.println("  Search succeeded");
-                } catch (Exception e) {
-                    System.out.println("  Search failed");
-                    e.printStackTrace();
+        final var data = new PreparedRuns.Data(
+                ramBuffer,
+                extension,
+                expectedDocs,
+                charsetName,
+                numThreads,
+                threadQueueFactor,
+                runPath,
+                maxDocsRetrieved,
+                expectedTopics,
+                topics,
+                indexPath,
+                docsPath
+        );
+
+        if (args.length >= 1) {
+            switch(args[0]) {
+                case "OpenNlpRun" -> PreparedRuns.OPEN_NLP.execute(data);
+                case "TaskBodyRun" -> PreparedRuns.TASK_BODY_SEARCHER.execute(data);
+                default -> {
+                    System.err.println("Unknown run name");
                 }
-                System.out.println("############################################");
-            });
-
-            System.out.println("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-        });
+            };
+        } else System.err.println("No run specified");
     }
 }

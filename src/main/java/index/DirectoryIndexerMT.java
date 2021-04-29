@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @version 2.00
  * @since 1.00
  */
-public class DirectoryIndexerMT {
+public class DirectoryIndexerMT implements Indexer {
 
     /**
      * One megabyte
