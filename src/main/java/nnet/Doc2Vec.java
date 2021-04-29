@@ -1,5 +1,9 @@
 package nnet;
 
+import analysis.MyAnalyzer;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.*;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.Terms;
@@ -7,16 +11,15 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.neuroph.core.NeuralNetwork;
-import org.neuroph.core.data.DataSet;
 import parse.ParsedDocument;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import org.neuroph.nnet.*;
+import topics.Topics;
 
 public class Doc2Vec {
     final LeafReader index;
@@ -87,18 +90,59 @@ public class Doc2Vec {
         return vec;
     }
 
+    static String buildString(final Analyzer a, final String t) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        // Create a new TokenStream for a dummy field
+        final TokenStream stream = a.tokenStream("field", new StringReader(t));
+        final CharTermAttribute tokenTerm = stream.addAttribute(CharTermAttribute.class);
+        try {
+            // Reset the stream before starting
+            stream.reset();
+
+            // Print all tokens until the stream is exhausted
+            stream.incrementToken();
+            sb.append(tokenTerm.toString());
+            while (stream.incrementToken()) {
+                sb.append(" ").append(tokenTerm.toString());
+            }
+
+            // Perform any end-of-stream operations
+            stream.end();
+        } finally {
+
+            // Close the stream and release all the resources
+            stream.close();
+        }
+        return sb.toString();
+    }
+
     public static void main(String[] args) throws IOException {
         final String indexPath = "experiment/index-task1parser";
+        final String topicsFile = "/home/enrico/se-workspace/data/touche/2020-qrels-topics/topics-task-1.xml";
         final String fieldName = ParsedDocument.FIELDS.BODY;
-        final String d1Analyzed = "cat table";
+        var analyzer = new MyAnalyzer();
+        final String d1 = "The cat is on the table";
+
         Doc2Vec test = new Doc2Vec(indexPath, fieldName);
 
         System.out.printf("Dictionary size = %d%n", test.dimension);
-        System.out.println("Vector representation (nonnull only):");
-        double[] vec =  test.toVec(d1Analyzed);
+
+        var t = buildString(analyzer, d1);
+        System.out.printf("Vector representation (nonnull only) of \"%s\":%n", t);
+
+        double[] vec =  test.toVec(t);
         for(int k = 0; k < vec.length; k++)
             if(vec[k] > 0)
                 System.out.printf("vec[%d] = %.2f%n", k, vec[k]);
 
+
+        var topics = Topics.loadTopics(topicsFile).topics;
+        t = buildString(analyzer, topics.get(0).title);
+        System.out.printf("Vector representation (nonnull only) of \"%s\":%n", t);
+
+        vec =  test.toVec(buildString(analyzer, d1));
+        for(int k = 0; k < vec.length; k++)
+            if(vec[k] > 0)
+                System.out.printf("vec[%d] = %.2f%n", k, vec[k]);
     }
 }
