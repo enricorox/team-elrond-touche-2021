@@ -21,8 +21,6 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.StopFilter;
-import org.apache.lucene.analysis.ngram.NGramTokenFilter;
-import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
 import java.io.IOException;
@@ -30,7 +28,7 @@ import java.io.Reader;
 
 import static Analizer.AnalyzerUtil.consumeTokenStream;
 //import static Analizer.AnalyzerUtil.loadStopList;
-//import static Analizer.StopWords.loadStopWords;
+
 
 /**
  * Introductory example on how to use write your own {@link Analyzer} by using different {@link Tokenizer}s and {@link
@@ -60,7 +58,7 @@ public class HelloAnalyzer extends Analyzer {
 
 		//tokens = new LengthFilter(tokens, 4, 10);
 		//tokens = new EnglishPossessiveFilter(tokens);
-		//tokens = new StopFilter(tokens, StopWords.loadStopWords("99webtools.txt"));
+		tokens = new StopFilter(tokens, StopWord.loadStopWords("99webtools.txt"));
 
 		//tokens = new EnglishMinimalStemFilter(tokens);
 		//tokens = new PorterStemFilter(tokens);
