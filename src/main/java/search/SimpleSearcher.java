@@ -50,7 +50,7 @@ import java.util.*;
  * @version 1.00
  * @since 1.00
  */
-public class TaskSearcher1 implements BasicSearcher {
+public class SimpleSearcher implements BasicSearcher {
 
     /**
      * The fields of the typical TREC topics.
@@ -125,7 +125,7 @@ public class TaskSearcher1 implements BasicSearcher {
      * @throws NullPointerException     if any of the parameters is {@code null}.
      * @throws IllegalArgumentException if any of the parameters assumes invalid values.
      */
-    public TaskSearcher1(final Analyzer analyzer, final Similarity similarity, final String indexPath,
+    public SimpleSearcher(final Analyzer analyzer, final Similarity similarity, final String indexPath,
                          final String topicsFile, final int expectedTopics, final String runID, final String runPath,
                          final int maxDocsRetrieved) {
 

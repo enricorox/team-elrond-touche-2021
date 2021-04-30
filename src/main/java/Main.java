@@ -6,7 +6,7 @@ import org.apache.lucene.search.similarities.Similarity;
 import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
-import search.TaskSearcher1;
+import search.SimpleSearcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class Main {
             Arrays.stream(props.getProperty("methodsList").split(" ")).forEach(method -> {
                 final var runID = "%s-%s".formatted(parserName, method);
                 final BasicSearcher searcher = switch (method) {
-                    case "taskSearcher1" -> new TaskSearcher1(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
+                    case "taskSearcher1" -> new SimpleSearcher(a, similarity, indexPath, topics, expectedTopics, runID, runPath, maxDocsRetrieved);
                     default -> throw new IllegalArgumentException("Unknown method %s".formatted(method));
                 };
                 System.out.println("\n############################################");
