@@ -18,7 +18,7 @@ public class StopWords {
      */
     public static CharArraySet loadStopWords(String name) {
         try {
-            final var res = StopWords.class.getResourceAsStream("../"+name);
+            final var res = ClassLoader.getSystemClassLoader().getResourceAsStream(name);
             if (res == null) throw new IllegalArgumentException("Resource %s not found".formatted(name));
             final var in = new InputStreamReader(res);
             final var reader = new BufferedReader(in);
