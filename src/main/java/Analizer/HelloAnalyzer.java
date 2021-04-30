@@ -21,6 +21,9 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.StopFilter;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
+import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
+import org.apache.lucene.analysis.en.KStemFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
 import java.io.IOException;
@@ -62,8 +65,8 @@ public class HelloAnalyzer extends Analyzer {
 
 		//tokens = new EnglishMinimalStemFilter(tokens);
 		//tokens = new PorterStemFilter(tokens);
-		//tokens = new KStemFilter(tokens);
-		tokens = new LovinsStemFilter(tokens);
+		tokens = new KStemFilter(tokens);
+		//tokens = new LovinsStemFilter(tokens);
 
 		//tokens = new NGramTokenFilter(tokens, 3);
 

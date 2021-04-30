@@ -6,6 +6,7 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.LMDirichletSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.DocumentParser;
 import parse.Task1Parser;
@@ -57,7 +58,7 @@ public class Main {
 
         final Analyzer a= new HelloAnalyzer();
 
-        final Similarity similarity = new BM25Similarity();
+        final Similarity similarity = new LMDirichletSimilarity();
 
         final String runPath = props.getProperty("work_folder");
 
