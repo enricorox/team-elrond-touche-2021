@@ -17,7 +17,8 @@ import java.io.IOException;
 public enum PreparedRuns {
     SIMPLE_RUN("SimpleAnalyzer", "SimpleSearcher") {
         @Override
-        public void execute(Data data) {
+        public String execute(Data data) {
+            final String runId = "ElrondSimpleRun";
             final Analyzer analyzer = new SimpleAnalyzer();
             final Similarity similarity = new BM25Similarity();
             indexer = new DirectoryIndexerMT(
@@ -39,16 +40,18 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "ElrondSimpleRun",
+                    runId,
                     data.runPath,
                     data.maxDocsRetrieved
             );
             search();
+            return runId;
         }
     },
     K_RUN("KAnalyzer", "TaskSearcher1") {
         @Override
-        public void execute(Data data) {
+        public String execute(Data data) {
+            final String runId = "ElrondKRun";
             final Analyzer analyzer = new KAnalyzer();
             final Similarity similarity = new LMDirichletSimilarity();
             indexer = new DirectoryIndexerMT(
@@ -69,16 +72,18 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "ElrondKRun",
+                    runId,
                     data.runPath,
                     data.maxDocsRetrieved);
 
             search();
+            return runId;
         }
     },
     OPEN_NLP("OpenNlpAnalyzer", "OpennlpSearcher") {
         @Override
-        public void execute(Data data) {
+        public String execute(Data data) {
+            final String runId = "ElrondOpenNlpRun";
             final Analyzer indexAnalyzer = new OpenNlpAnalyzer();
             final Analyzer queryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.ORIGINAL_ONLY);
             final Analyzer typedQueryAnalyzer = new OpenNlpAnalyzer(OpenNlpAnalyzer.FilterStrategy.TYPED_ONLY);
@@ -103,18 +108,20 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "ElrondOpenNlpRun",
+                    runId,
                     data.runPath,
                     data.maxDocsRetrieved,
                     data.numThreads,
                     data.threadQueueFactor
             );
             search();
+            return runId;
         }
     },
     TASK_BODY_SEARCHER("TaskAnalyzer", "TaskBodySearcher") {
         @Override
-        public void execute(Data data) {
+        public String execute(Data data) {
+            final String runId = "ElrondTaskBodyRun";
             final Analyzer analyzer = new TaskAnalyzer();
             final Similarity similarity = new DFISimilarity(new IndependenceStandardized());
             indexer = new DirectoryIndexerMT(
@@ -136,11 +143,12 @@ public enum PreparedRuns {
                     data.indexPath,
                     data.topics,
                     data.expectedTopics,
-                    "ElrondTaskBodyRun",
+                    runId,
                     data.runPath,
                     data.maxDocsRetrieved
             );
             search();
+            return runId;
         }
     };
 
@@ -155,7 +163,7 @@ public enum PreparedRuns {
         this.searcherName = searcherName;
     }
 
-    public abstract void execute(Data data);
+    public abstract String execute(Data data);
     protected void index() {
         System.out.printf("Started indexing with '%s'...%n", analyzerName);
         try {

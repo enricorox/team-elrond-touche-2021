@@ -59,7 +59,8 @@ public class Searcher {
      * The fields of the typical TREC topics.
      *
      * @author Nicola Ferro
-     * @version 1.00
+     * @author elrond-group
+     * @version 2.00
      * @since 1.00
      */
     private static final class TOPIC_FIELDS {

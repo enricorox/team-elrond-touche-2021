@@ -5,6 +5,10 @@ import org.apache.commons.cli.ParseException;
 import utils.Props;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -57,7 +61,7 @@ public class Main {
 
         final long startTime = System.currentTimeMillis();
 
-        switch(props.getProperty("RunToExecute")) {
+        final String runId = switch(props.getProperty("RunToExecute")) {
             case "OpenNlpRun" -> PreparedRuns.OPEN_NLP.execute(data);
             case "TaskBodyRun" -> PreparedRuns.TASK_BODY_SEARCHER.execute(data);
             case "KRun" -> PreparedRuns.K_RUN.execute(data);
@@ -65,6 +69,12 @@ public class Main {
             default -> {
                 throw new IllegalArgumentException("Command line parsing messed up");
             }
+        };
+
+        if (props.getProperty("output_run") != null) {
+            final var src = Path.of(runPath + "/" + runId + ".txt");
+            final var dst = Path.of(props.getProperty("output_run") + "/" + "run.txt");
+            Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
         }
 
         final long endTime = System.currentTimeMillis();
@@ -77,7 +87,7 @@ public class Main {
         System.err.println("""
                 Usage: this_program [-i input folder] [-o output dir] run_name
                 -i     Replace input directory (for TIRA)
-                -o     Replace output directory (for TIRA)
+                -o     Run output directory (for TIRA)
                 Possible run names:
                                SimpleRun
                                KRun
@@ -99,7 +109,7 @@ public class Main {
             e.printStackTrace();
             System.exit(1);
         }
-        cmd = Objects.requireNonNull(cmd);
+        Objects.requireNonNull(cmd);
 
         if (cmd.getArgs().length != 1) {
             errorAndPrintHelp("Unrecognised run");
@@ -115,8 +125,8 @@ public class Main {
             props.setProperty("topics_path", i + "/" + "topics.xml");
         }
         if (o != null) {
-            System.out.printf("Replacing output props with %s%n", o);
-            props.setProperty("work_folder", o);
+            System.out.printf("Setting run output dir with %s%n", o);
+            props.setProperty("output_run", o + "/" + "run.txt");
         }
     }
 }
