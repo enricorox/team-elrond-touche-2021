@@ -1,3 +1,4 @@
+import analyzers.KAnalyzer;
 import analyzers.OpenNlpAnalyzer;
 import analyzers.TaskAnalyzer;
 import index.DirectoryIndexerMT;
@@ -11,6 +12,7 @@ import parse.Task1Parser;
 import search.BasicSearcher;
 import search.OpenNlpTaskSearcher;
 import search.TaskBodySearcher;
+import search.TaskSearcher1;
 
 import java.io.IOException;
 
@@ -18,6 +20,36 @@ import java.io.IOException;
  * Enum for executing differents runs
  */
 public enum PreparedRuns {
+    K_RUN("KAnalyzer", "TaskSearcher1") {
+        @Override
+        public void execute(Data data) {
+            final Analyzer analyzer = new KAnalyzer();
+            final Similarity similarity = new LMDirichletSimilarity();
+            indexer = new DirectoryIndexerMT(
+                    analyzer,
+                    similarity,
+                    data.ramBuffer,
+                    data.indexPath,
+                    data.docsPath,
+                    data.extension,
+                    data.charsetName,
+                    data.expectedDocs,
+                    Task1Parser.class,
+                    data.numThreads,
+                    data.threadQueueFactor);
+            index();
+            searcher = new TaskSearcher1(analyzer,
+                    similarity,
+                    data.indexPath,
+                    data.topics,
+                    data.expectedTopics,
+                    "ElrondKRun",
+                    data.runPath,
+                    data.maxDocsRetrieved);
+
+            search();
+        }
+    },
     OPEN_NLP("OpenNlpAnalyzer", "OpennlpSearcher") {
         @Override
         public void execute(Data data) {
