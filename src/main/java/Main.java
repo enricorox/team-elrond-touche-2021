@@ -73,7 +73,7 @@ public class Main {
 
         if (props.getProperty("output_run") != null) {
             final var src = Path.of(runPath + "/" + runId + ".txt");
-            final var dst = Path.of(props.getProperty("output_run") + "/" + "run.txt");
+            final var dst = Path.of(props.getProperty("output_run"));
             Files.copy(src, dst, StandardCopyOption.REPLACE_EXISTING);
         }
 
