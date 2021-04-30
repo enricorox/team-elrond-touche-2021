@@ -110,12 +110,12 @@ public class Main {
         final var i = cmd.getOptionValue("i");
         final var o = cmd.getOptionValue("o");
         if (i != null) {
-            System.out.println("Replacing input props value with command line options...");
+            System.out.printf("Replacing input props value with %s%n", i);
             props.setProperty("docs_path", i);
             props.setProperty("topics_path", i + "/" + "topics.xml");
         }
         if (o != null) {
-            System.out.println("Replacing output props with command line option");
+            System.out.printf("Replacing output props with %s%n", o);
             props.setProperty("work_folder", o);
         }
     }

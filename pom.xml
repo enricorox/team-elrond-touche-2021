@@ -21,9 +21,26 @@
 
     <inceptionYear>2021</inceptionYear>
 
-<!--    <developers>-->
-        <!--    todo    -->
-<!--    </developers>-->
+    <developers>
+        <developer>
+            <name>Vincenzo Savarino</name>
+        </developer>
+        <developer>
+            <name>Mattia Luciani</name>
+        </developer>
+        <developer>
+            <name>Giuseppe Esposito</name>
+        </developer>
+        <developer>
+            <name>Ludovico Bonan</name>
+        </developer>
+        <developer>
+            <name>Enrico Rossignolo</name>
+        </developer>
+        <developer>
+            <name>Gianmarco Carraretto</name>
+        </developer>
+    </developers>
 
 
     <!-- Build settings -->
@@ -72,6 +89,11 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>Main</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
