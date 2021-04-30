@@ -8,6 +8,6 @@ Possible values are: `SimpleRun`, `KRun`, `TaskBodyRun`, `OpenNlpRun`.
    
 There are some additional option needed for running the program on `tira.io` for submission, but for local running we suggest only using the values inside `data.properties`.
 
-The additional options are:  
+The additional options (for `tira.io` only) are:  
 1. `-i` for replacing the documents input directory  
 2. `-o` for coping the run file inside a different folder and naming it 'run.txt'
