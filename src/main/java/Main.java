@@ -1,18 +1,6 @@
-import analyzers.TaskAnalyzer;
-import index.DirectoryIndexerMT;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.similarities.*;
-import parse.DocumentParser;
-import parse.Task1Parser;
-import search.BasicSearcher;
-import search.TaskSearcher1;
-import search.TaskBodySearcher;
-import search.OpenNlpTaskSearcher;
 import utils.Props;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Properties;
 
 public class Main {
