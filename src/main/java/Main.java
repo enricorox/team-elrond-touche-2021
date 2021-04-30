@@ -6,10 +6,16 @@ import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.en.PorterStemFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.*;
+import org.apache.lucene.analysis.en.KStemFilter;
+import org.apache.lucene.analysis.en.KStemFilterFactory;
 import parse.DocumentParser;
 import parse.Task1Parser;
 import search.BasicSearcher;
 import search.TaskSearcher1;
+
+
+
+
 
 import java.io.File;
 import java.io.IOException;
@@ -48,11 +54,13 @@ public class Main {
                .addTokenFilter(LowerCaseFilterFactory.class)
                .addTokenFilter(StopFilterFactory.class,
                                 "ignoreCase", "false", "words", "99webtools.txt", "format", "wordset")
+         //      .addTokenFilter(PorterStemFilterFactory.class)
                .addTokenFilter(PorterStemFilterFactory.class)
+               .addTokenFilter(KStemFilterFactory.class)
                .build();
          //final Similarity similarity = new BM25Similarity();
         //final Similarity similarity=new ClassicSimilarity();
-        final Similarity similarity=new LMDirichletSimilarity(1500);
+        final Similarity similarity=new LMDirichletSimilarity();
        // final Similarity similarity=new DFRSimilarity(new BasicModelIn(), new AfterEffectL(), new NormalizationH1() );
         //final Similarity similarity=new DFRSimilarity(new BasicModelIne(), new AfterEffectL(), new NormalizationH2() );
 
