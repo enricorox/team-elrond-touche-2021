@@ -1,11 +1,6 @@
-import analysis.MyAnalyzer;
+import analysis.SimpleAnalyzer;
 import index.DirectoryIndexer;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
-import org.apache.lucene.analysis.core.StopFilterFactory;
-import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.PorterStemFilterFactory;
-import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import parse.DocumentParser;
@@ -15,7 +10,6 @@ import search.TaskSearcher1;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -53,7 +47,7 @@ public class Main {
 //               .addTokenFilter(PorterStemFilterFactory.class)
 //               .build();
 
-        final Analyzer a = new MyAnalyzer();
+        final Analyzer a = new SimpleAnalyzer();
 
         final Similarity similarity = new BM25Similarity();
 

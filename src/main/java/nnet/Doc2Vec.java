@@ -1,6 +1,6 @@
 package nnet;
 
-import analysis.MyAnalyzer;
+import analysis.SimpleAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.*;
@@ -120,7 +120,7 @@ public class Doc2Vec {
         final String indexPath = "experiment/index-task1parser";
         final String topicsFile = "/home/enrico/se-workspace/data/touche/2020-qrels-topics/topics-task-1.xml";
         final String fieldName = ParsedDocument.FIELDS.BODY;
-        var analyzer = new MyAnalyzer();
+        var analyzer = new SimpleAnalyzer();
         final String d1 = "The cat is on the table";
 
         Doc2Vec test = new Doc2Vec(indexPath, fieldName);

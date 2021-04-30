@@ -20,10 +20,6 @@ import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.StopFilter;
-import org.apache.lucene.analysis.core.WhitespaceTokenizer;
-import org.apache.lucene.analysis.miscellaneous.LengthFilter;
-import org.apache.lucene.analysis.ngram.NGramTokenFilter;
-import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 
 import java.io.IOException;
@@ -40,12 +36,12 @@ import static analysis.AnalyzerUtil.loadStopList;
  * @version 1.0
  * @since 1.0
  */
-public class MyAnalyzer extends Analyzer {
+public class SimpleAnalyzer extends Analyzer {
 
 	/**
 	 * Creates a new instance of the analyzer.
 	 */
-	public MyAnalyzer() {
+	public SimpleAnalyzer() {
 		super();
 	}
 
@@ -53,26 +49,18 @@ public class MyAnalyzer extends Analyzer {
 	protected TokenStreamComponents createComponents(String fieldName) {
 
 		//final Tokenizer source = new WhitespaceTokenizer(); // Do not use this (do not filter punctuation!)
-		//final Tokenizer source = new LetterTokenizer();
+
 		final Tokenizer source = new StandardTokenizer();
 
 		TokenStream tokens = new LowerCaseFilter(source);
 
-		//tokens = new LengthFilter(tokens, 3, 10);
-
-		//tokens = new EnglishPossessiveFilter(tokens);
-
 		tokens = new StopFilter(tokens, loadStopList("99webtools.txt")); // rel_ret=1165
+
 		//tokens = new StopFilter(tokens, loadStopList("99webtools_mod.txt")); // rel_ret=1163
 		//tokens = new StopFilter(tokens, loadStopList("smart.txt")); // rel_ret=1163
 		//tokens = new StopFilter(tokens, loadStopList("glasgow_stop_words.txt")); // rel_ret=1162
 		//tokens = new StopFilter(tokens, loadStopList("t101_minimal.txt")); // rel_ret=1126
 		//tokens = new StopFilter(tokens, loadStopList("corenlp_hardcoded.txt")); // rel_ret=1119
-
-		//tokens = new EnglishMinimalStemFilter(tokens);
-		//tokens = new PorterStemFilter(tokens);
-		//tokens = new KStemFilter(tokens);
-		//tokens = new LovinsStemFilter(tokens);
 
 		//tokens = new NGramTokenFilter(tokens, 3); // Do not use this! MAP < 0.04
 
@@ -106,7 +94,7 @@ public class MyAnalyzer extends Analyzer {
 		final String text = "I now live in Rome where I met my wife Alice back in 2010 during a beautiful afternoon. " + "Occasionally, I fly to New York to visit the United Nations where I would like to work. The last " + "time I was there in March 2019, the flight was very inconvenient, leaving at 4:00 am, and expensive," + " over 1,500 dollars.";
 
 		// use the analyzer to process the text and print diagnostic information about each token
-		consumeTokenStream(new MyAnalyzer(), text);
+		consumeTokenStream(new SimpleAnalyzer(), text);
 
 
 	}
