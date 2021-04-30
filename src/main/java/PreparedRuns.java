@@ -12,7 +12,7 @@ import search.*;
 import java.io.IOException;
 
 /**
- * Enum for executing differents runs
+ * Enum for executing different runs
  */
 public enum PreparedRuns {
     SIMPLE_RUN("SimpleAnalyzer", "SimpleSearcher") {

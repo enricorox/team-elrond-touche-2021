@@ -24,8 +24,8 @@ public class Main {
         final int expectedDocs = Integer.parseInt(props.getProperty("expectedDocs"));
         final String charsetName = props.getProperty("charsetName");
 
-        final int numThreads = 12;
-        final double threadQueueFactor = 3;
+        final int numThreads = Integer.parseInt(props.getProperty("numThreads"));
+        final double threadQueueFactor = Double.parseDouble(props.getProperty("threadQueueFactor"));
 
         final String runPath = props.getProperty("work_folder");
         final int maxDocsRetrieved = Integer.parseInt(props.getProperty("maxDocsRetrieved"));
@@ -49,6 +49,8 @@ public class Main {
                 docsPath
         );
 
+        final long startTime = System.currentTimeMillis();
+
         if (args.length >= 1) {
             switch(args[0]) {
                 case "OpenNlpRun" -> PreparedRuns.OPEN_NLP.execute(data);
@@ -56,9 +58,24 @@ public class Main {
                 case "KRun" -> PreparedRuns.K_RUN.execute(data);
                 case "SimpleRun" -> PreparedRuns.SIMPLE_RUN.execute(data);
                 default -> {
-                    System.err.println("Unknown run name");
+                    errorAndPrintHelp("Unknown run name");
                 }
             };
-        } else System.err.println("No run specified");
+        } else errorAndPrintHelp("No run specified");
+
+        final long endTime = System.currentTimeMillis();
+
+        System.out.printf("Total execution time %d%n", (endTime - startTime) / 1000);
+    }
+
+    private static void errorAndPrintHelp(final String error) {
+        System.err.println(error);
+        System.err.println("""
+                HELP: execute this program passing a single parameter on the command line with the name of the run.
+                Possible runs:
+                               SimpleRun
+                               KRun
+                               TaskBodyRun
+                               OpenNlpRun""");
     }
 }
