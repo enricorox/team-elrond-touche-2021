@@ -1,4 +1,4 @@
-#Team Elrond: Touché Task-1 2021 @ CLEF
+#Team Elrond: Touché Task-1 2021 @ CLEF#
 This is the repository for the Elrond group composed by students of University of Padua enrolled in the Information Retrival course in 2021 that are partecipanting in the Clef Touché Task1 competition.
 
 ##How to use
