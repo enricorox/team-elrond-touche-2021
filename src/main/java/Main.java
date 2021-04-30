@@ -54,6 +54,7 @@ public class Main {
                 case "OpenNlpRun" -> PreparedRuns.OPEN_NLP.execute(data);
                 case "TaskBodyRun" -> PreparedRuns.TASK_BODY_SEARCHER.execute(data);
                 case "KRun" -> PreparedRuns.K_RUN.execute(data);
+                case "SimpleRun" -> PreparedRuns.SIMPLE_RUN.execute(data);
                 default -> {
                     System.err.println("Unknown run name");
                 }

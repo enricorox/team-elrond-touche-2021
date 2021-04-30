@@ -291,7 +291,6 @@ public class TaskSearcher1 implements BasicSearcher {
 
                 booleanQueryBuilder.add(bodyQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.MUST);
 
-                //I suppose the rank will be better if also this match
                 booleanQueryBuilder.add(titleQueryParser.parse(QueryParserBase.escape(topic_query.getValue(TOPIC_FIELDS.TITLE))), BooleanClause.Occur.SHOULD);
 
                 query = booleanQueryBuilder.build();

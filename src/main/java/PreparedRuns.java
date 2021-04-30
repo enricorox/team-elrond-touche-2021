@@ -1,18 +1,13 @@
 import analyzers.KAnalyzer;
 import analyzers.OpenNlpAnalyzer;
+import analyzers.SimpleAnalyzer;
 import analyzers.TaskAnalyzer;
 import index.DirectoryIndexerMT;
 import index.Indexer;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.search.similarities.DFISimilarity;
-import org.apache.lucene.search.similarities.IndependenceStandardized;
-import org.apache.lucene.search.similarities.LMDirichletSimilarity;
-import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.search.similarities.*;
 import parse.Task1Parser;
-import search.BasicSearcher;
-import search.OpenNlpTaskSearcher;
-import search.TaskBodySearcher;
-import search.TaskSearcher1;
+import search.*;
 
 import java.io.IOException;
 
@@ -20,6 +15,37 @@ import java.io.IOException;
  * Enum for executing differents runs
  */
 public enum PreparedRuns {
+    SIMPLE_RUN("SimpleAnalyzer", "SimpleSearcher") {
+        @Override
+        public void execute(Data data) {
+            final Analyzer analyzer = new SimpleAnalyzer();
+            final Similarity similarity = new BM25Similarity();
+            indexer = new DirectoryIndexerMT(
+                    analyzer,
+                    similarity,
+                    data.ramBuffer,
+                    data.indexPath,
+                    data.docsPath,
+                    data.extension,
+                    data.charsetName,
+                    data.expectedDocs,
+                    Task1Parser.class,
+                    data.numThreads,
+                    data.threadQueueFactor);
+            index();
+            searcher = new SimpleSearcher(
+                    analyzer,
+                    similarity,
+                    data.indexPath,
+                    data.topics,
+                    data.expectedTopics,
+                    "ElrondSimpleRun",
+                    data.runPath,
+                    data.maxDocsRetrieved
+            );
+            search();
+        }
+    },
     K_RUN("KAnalyzer", "TaskSearcher1") {
         @Override
         public void execute(Data data) {
