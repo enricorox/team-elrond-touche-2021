@@ -65,7 +65,7 @@ public class Main {
 
         final long endTime = System.currentTimeMillis();
 
-        System.out.printf("Total execution time %d%n", (endTime - startTime) / 1000);
+        System.out.printf("Total execution time %f%n", (endTime - startTime) / 1000.0);
     }
 
     private static void errorAndPrintHelp(final String error) {
