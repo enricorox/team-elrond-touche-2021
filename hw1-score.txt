@@ -1,0 +1,7 @@
+Score 19
+
+"- Nice that you have manually inspected the dataset
+ - Good that you tried synonyms and word N-grams (to learn they did not work in this case)
+- I must admit I've never seen two stemmers with stop word inbetween but whay you wrote makes sense
+- Very good that you used PoS tagging even if it is not very clear from the report how you used it (you focused on nouns, verbs, ...). Nice also merging normal and typed queries and the use of multi-threading for reducing computation time
+- Good set of ideas for future work"
