@@ -11,3 +11,11 @@ There are some additional option needed for running the program on `tira.io` for
 The additional options (for `tira.io` only) are:  
 1. `-i` for replacing the documents input directory  
 2. `-o` for coping the run file inside a different folder and naming it 'run.txt'
+
+# Authors
+* [Enrico Rossignolo](https://github.com/enricorox) 
+* [Gianmarco Carraretto](https://github.com/giamgiammi)
+* Giuseppe Esposito
+* [Ludovico Bonan](https://github.com/ludovico1)
+* [Mattia Luciani](https://github.com/MattiaLuciani)
+* [Vincenzo Savarino](https://github.com/VincenzoSavarino)
